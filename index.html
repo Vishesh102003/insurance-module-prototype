@@ -66,7 +66,8 @@
               <input id="globalSearch" type="search" placeholder="UHID, policy, claim, payer" />
             </div>
             <button class="btn btn-light btn-sm" id="openEvidence">NABH Evidence</button>
-            <button class="btn btn-primary btn-sm" data-screen-link="patient">Add Policy</button>
+            <button class="btn btn-light btn-sm" data-action="reset-demo">Reset Demo</button>
+            <button class="btn btn-primary btn-sm" data-screen-link="patient" data-action="new-policy">Add Policy</button>
           </div>
         </header>
 
@@ -85,32 +86,32 @@
                 <div class="metric-icon primary">Q</div>
                 <div>
                   <span>Open insurance tasks</span>
-                  <strong>48</strong>
-                  <small>12 due in next 2 hours</small>
+                  <strong id="kpiTasks">48</strong>
+                  <small id="kpiTasksSub">12 due in next 2 hours</small>
                 </div>
               </article>
               <article class="metric-card">
                 <div class="metric-icon warning">A</div>
                 <div>
                   <span>Pre-auth pending</span>
-                  <strong>17</strong>
-                  <small>5 SLA breach risk</small>
+                  <strong id="kpiPreauth">17</strong>
+                  <small id="kpiPreauthSub">5 SLA breach risk</small>
                 </div>
               </article>
               <article class="metric-card">
                 <div class="metric-icon success">S</div>
                 <div>
                   <span>Claims ready</span>
-                  <strong>32</strong>
-                  <small>INR 18.4L claim value</small>
+                  <strong id="kpiClaims">32</strong>
+                  <small id="kpiClaimsSub">INR 18.4L claim value</small>
                 </div>
               </article>
               <article class="metric-card">
                 <div class="metric-icon danger">E</div>
                 <div>
                   <span>Exceptions</span>
-                  <strong>9</strong>
-                  <small>Overrides and missing docs</small>
+                  <strong id="kpiExceptions">9</strong>
+                  <small id="kpiExceptionsSub">Overrides and missing docs</small>
                 </div>
               </article>
             </div>
@@ -212,9 +213,9 @@
                     <h3>Patient Insurance Policies</h3>
                     <p>Multi-policy support with priority and verification status.</p>
                   </div>
-                  <button class="btn btn-primary btn-sm">Add Policy</button>
+                  <button class="btn btn-primary btn-sm" data-action="new-policy">Add Policy</button>
                 </div>
-                <div class="policy-list">
+                <div class="policy-list" id="policyList">
                   <article class="policy-card selected">
                     <div class="policy-top">
                       <div>
@@ -254,24 +255,26 @@
                   <span class="badge badge-soft-primary">Registration Desk</span>
                 </div>
                 <div class="form-grid">
-                  <label>Insurance provider<select><option>Star Health Cashless</option><option>CGHS</option><option>ABC Corporate</option></select></label>
-                  <label>Insurance type<select><option>Cashless</option><option>Corporate</option><option>Government Scheme</option><option>Reimbursement</option></select></label>
-                  <label>Policy number<input value="SH-8821-0091" /></label>
-                  <label>Member/card ID<input value="STAR-443210" /></label>
-                  <label>Holder type<select><option>Self</option><option>Spouse</option><option>Child</option><option>Parent</option></select></label>
-                  <label>Priority<select><option>Primary</option><option>Secondary</option><option>Tertiary</option></select></label>
-                  <label>Valid from<input type="date" value="2026-04-01" /></label>
-                  <label>Valid to<input type="date" value="2027-03-31" /></label>
+                  <label>Insurance provider<select id="policyProvider"><option>Star Health Cashless</option><option>CGHS Jaipur</option><option>ABC Corporate</option><option>Self + Reimbursement</option></select></label>
+                  <label>Insurance type<select id="policyType"><option>Cashless</option><option>Corporate</option><option>Government Scheme</option><option>Reimbursement</option></select></label>
+                  <label>Policy number<input id="policyNumber" value="SH-8821-0091" /></label>
+                  <label>Member/card ID<input id="memberId" value="STAR-443210" /></label>
+                  <label>Holder type<select id="holderType"><option>Self</option><option>Spouse</option><option>Child</option><option>Parent</option></select></label>
+                  <label>Priority<select id="policyPriority"><option>Primary</option><option>Secondary</option><option>Tertiary</option></select></label>
+                  <label>Valid from<input id="validFrom" type="date" value="2026-04-01" /></label>
+                  <label>Valid to<input id="validTo" type="date" value="2027-03-31" /></label>
+                  <label>Sum insured / credit limit<input id="sumInsured" type="number" value="500000" /></label>
+                  <label>Available balance<input id="availableBalance" type="number" value="386400" /></label>
                 </div>
-                <div class="document-strip">
-                  <span class="doc-pill done">Insurance card</span>
-                  <span class="doc-pill done">Photo ID</span>
-                  <span class="doc-pill done">Consent</span>
-                  <span class="doc-pill pending">Policy copy</span>
+                <div class="document-strip" id="policyDocs">
+                  <button class="doc-pill done" data-doc-toggle="Insurance card">Insurance card</button>
+                  <button class="doc-pill done" data-doc-toggle="Photo ID">Photo ID</button>
+                  <button class="doc-pill done" data-doc-toggle="Consent">Consent</button>
+                  <button class="doc-pill pending" data-doc-toggle="Policy copy">Policy copy</button>
                 </div>
                 <div class="action-row">
                   <button class="btn btn-light btn-sm" data-screen-link="verification">Verify Eligibility</button>
-                  <button class="btn btn-primary btn-sm">Save Policy</button>
+                  <button class="btn btn-primary btn-sm" data-action="save-policy">Save Policy</button>
                 </div>
               </section>
             </div>
@@ -285,9 +288,9 @@
                     <h3>Insurance Master</h3>
                     <p>Contract, rule, TPA, SLA, and integration control point.</p>
                   </div>
-                  <button class="btn btn-primary btn-sm">New Insurance</button>
+                  <button class="btn btn-primary btn-sm" data-action="new-master">New Insurance</button>
                 </div>
-                <div class="master-grid">
+                <div class="master-grid" id="masterGrid">
                   <article class="master-row active">
                     <div>
                       <strong>Star Health</strong>
@@ -317,7 +320,7 @@
                   <h3>Selected Contract Rules</h3>
                   <span class="badge badge-soft-danger">Pre-auth required</span>
                 </div>
-                <div class="rule-list">
+                <div class="rule-list" id="ruleList">
                   <div><span>Short code</span><strong>STAR</strong></div>
                   <div><span>Contract validity</span><strong>01 Apr 2026 - 31 Mar 2027</strong></div>
                   <div><span>Pre-auth SLA</span><strong>60 min</strong></div>
@@ -328,8 +331,8 @@
                   <div><span>Integration</span><strong>API + Manual fallback</strong></div>
                 </div>
                 <div class="action-row">
-                  <button class="btn btn-light btn-sm">View Audit</button>
-                  <button class="btn btn-primary btn-sm">Edit Rules</button>
+                  <button class="btn btn-light btn-sm" data-screen-link="audit">View Audit</button>
+                  <button class="btn btn-primary btn-sm" data-action="edit-master">Edit Rules</button>
                 </div>
               </section>
             </div>
@@ -353,19 +356,19 @@
                 </div>
                 <div class="form-grid">
                   <label>Verification mode<select id="verificationMode"><option>Manual phone call</option><option>Insurer API</option><option>Portal check</option><option>SFTP batch</option></select></label>
-                  <label>TPA contact<input value="MediAssist Helpdesk" /></label>
-                  <label>Reference / call ID<input value="MA-REF-983722" /></label>
-                  <label>Outcome<select><option>Verified with exclusions</option><option>Verified</option><option>Rejected</option><option>Query raised</option></select></label>
-                  <label>Approved service scope<input value="Ortho procedure, ward stay, diagnostics" /></label>
-                  <label>Waiting period notes<input value="Maternity excluded; ortho covered" /></label>
+                  <label>TPA contact<input id="verificationContact" value="MediAssist Helpdesk" /></label>
+                  <label>Reference / call ID<input id="verificationRef" value="MA-REF-983722" /></label>
+                  <label>Outcome<select id="verificationOutcome"><option>Verified with exclusions</option><option>Verified</option><option>Rejected</option><option>Query raised</option></select></label>
+                  <label>Approved service scope<input id="verificationScope" value="Ortho procedure, ward stay, diagnostics" /></label>
+                  <label>Waiting period notes<input id="verificationNotes" value="Maternity excluded; ortho covered" /></label>
                 </div>
                 <div class="callout info">
                   <strong>Structured manual handling</strong>
                   <p>Every phone/portal/email verification captures contact, reference, outcome, exclusions, next follow-up, and operator.</p>
                 </div>
                 <div class="action-row">
-                  <button class="btn btn-light btn-sm">Save as Pending</button>
-                  <button class="btn btn-primary btn-sm" data-screen-link="preauth">Create Pre-Auth</button>
+                  <button class="btn btn-light btn-sm" data-action="save-verification-pending">Save as Pending</button>
+                  <button class="btn btn-primary btn-sm" data-action="create-preauth">Create Pre-Auth</button>
                 </div>
               </section>
 
@@ -374,7 +377,7 @@
                   <h3>Verification Snapshot</h3>
                   <span class="badge badge-soft-success">Audit locked</span>
                 </div>
-                <div class="snapshot">
+                <div class="snapshot" id="verificationSnapshot">
                   <div><span>Verified by</span><strong>Insurance Desk - Anita</strong></div>
                   <div><span>Verified at</span><strong>18 May 2026, 10:42 AM</strong></div>
                   <div><span>Source</span><strong>Manual phone call</strong></div>
@@ -382,7 +385,7 @@
                   <div><span>Eligibility</span><strong>Covered</strong></div>
                   <div><span>Exclusions</span><strong>Non-medical consumables</strong></div>
                 </div>
-                <div class="mini-table">
+                <div class="mini-table" id="verificationDocs">
                   <div><span>Document</span><span>Status</span></div>
                   <div><strong>Insurance card</strong><span class="badge badge-soft-success">Done</span></div>
                   <div><strong>Government ID</strong><span class="badge badge-soft-success">Done</span></div>
@@ -400,9 +403,9 @@
                     <h3>Pre-Authorization Tracker</h3>
                     <p>Tracks request, query, approval, amendment, and final authorization.</p>
                   </div>
-                  <span class="badge badge-soft-danger">Due in 34 min</span>
+                  <span class="badge badge-soft-danger" id="preauthDueBadge">Due in 34 min</span>
                 </div>
-                <div class="preauth-card">
+                <div class="preauth-card" id="preauthCard">
                   <div class="preauth-head">
                     <div>
                       <strong>PA-STAR-2026-000487</strong>
@@ -428,8 +431,8 @@
                   <button class="workflow-step">Final auth</button>
                 </div>
                 <div class="action-row">
-                  <button class="btn btn-warning btn-sm">Request Amendment</button>
-                  <button class="btn btn-primary btn-sm" data-screen-link="billing">Proceed to Billing</button>
+                  <button class="btn btn-warning btn-sm" data-action="request-amendment">Request Amendment</button>
+                  <button class="btn btn-primary btn-sm" data-action="proceed-billing">Proceed to Billing</button>
                 </div>
               </section>
 
@@ -438,13 +441,13 @@
                   <h3>Approved Scope</h3>
                   <span class="badge badge-soft-info">Line validation</span>
                 </div>
-                <div class="scope-list">
+                <div class="scope-list" id="scopeList">
                   <div><strong>Ortho package</strong><span>INR 95,000</span><em>Covered</em></div>
                   <div><strong>Ward room rent</strong><span>INR 5,000/day</span><em>Cap applies</em></div>
                   <div><strong>Diagnostics</strong><span>INR 22,500</span><em>Covered</em></div>
                   <div><strong>Non-medical items</strong><span>INR 8,600</span><em>Patient payable</em></div>
                 </div>
-                <div class="callout warning">
+                <div class="callout warning" id="preauthWarning">
                   <strong>Amendment suggested</strong>
                   <p>Current bill estimate exceeds approved balance by INR 12,800.</p>
                 </div>
@@ -460,10 +463,16 @@
                   <p>Line-level payer and patient liability before final bill lock.</p>
                 </div>
                 <div class="banner-badges">
-                  <span class="badge badge-soft-success">Policy verified</span>
-                  <span class="badge badge-soft-success">Pre-auth approved</span>
-                  <span class="badge badge-soft-warning">Cap exceeded</span>
+                  <span class="badge badge-soft-success" id="billingPolicyBadge">Policy verified</span>
+                  <span class="badge badge-soft-success" id="billingPreauthBadge">Pre-auth approved</span>
+                  <span class="badge badge-soft-warning" id="billingCapBadge">Cap exceeded</span>
                 </div>
+              </div>
+              <div class="billing-controls">
+                <label>Co-pay %<input id="coPayInput" type="number" min="0" max="100" value="10" /></label>
+                <label>Room cap/day<input id="roomCapInput" type="number" min="0" value="5000" /></label>
+                <label>Deductible<input id="deductibleInput" type="number" min="0" value="0" /></label>
+                <button class="btn btn-light btn-sm" data-action="apply-billing-rules">Recalculate</button>
               </div>
               <div class="table-responsive">
                 <table class="table table-hover billing-table">
@@ -477,7 +486,7 @@
                       <th>Patient</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="billingRows">
                     <tr>
                       <td><strong>Ortho surgery package</strong><small>PKG-ORTHO-221</small></td>
                       <td>INR 1,10,000</td>
@@ -514,15 +523,15 @@
                 </table>
               </div>
               <div class="billing-summary">
-                <div><span>Total bill</span><strong>INR 1,47,400</strong></div>
-                <div><span>Insurer payable</span><strong>INR 1,32,820</strong></div>
-                <div><span>Patient payable</span><strong>INR 14,580</strong></div>
-                <div><span>Pre-auth balance after bill</span><strong>INR 17,180</strong></div>
+                <div><span>Total bill</span><strong id="billingTotal">INR 1,47,400</strong></div>
+                <div><span>Insurer payable</span><strong id="billingInsurer">INR 1,32,820</strong></div>
+                <div><span>Patient payable</span><strong id="billingPatient">INR 14,580</strong></div>
+                <div><span>Pre-auth balance after bill</span><strong id="billingBalance">INR 17,180</strong></div>
               </div>
               <div class="action-row">
-                <button class="btn btn-light btn-sm">Print Estimate</button>
-                <button class="btn btn-warning btn-sm">Supervisor Override</button>
-                <button class="btn btn-primary btn-sm" data-screen-link="claims">Finalize & Create Claim</button>
+                <button class="btn btn-light btn-sm" data-action="print-estimate">Print Estimate</button>
+                <button class="btn btn-warning btn-sm" data-action="supervisor-override">Supervisor Override</button>
+                <button class="btn btn-primary btn-sm" data-action="finalize-claim">Finalize & Create Claim</button>
               </div>
             </div>
           </section>
@@ -535,16 +544,16 @@
                     <h3>Claim Packet Builder</h3>
                     <p>One claim lifecycle from bill lock to settlement and appeal.</p>
                   </div>
-                  <span class="badge badge-soft-primary">Draft packet</span>
+                  <span class="badge badge-soft-primary" id="claimStatusBadge">Draft packet</span>
                 </div>
-                <div class="workflow-steps claim-steps">
+                <div class="workflow-steps claim-steps" id="claimSteps">
                   <button class="workflow-step complete">Bill ready</button>
                   <button class="workflow-step active">Packet check</button>
                   <button class="workflow-step">Submitted</button>
                   <button class="workflow-step">Acknowledged</button>
                   <button class="workflow-step">Settled</button>
                 </div>
-                <div class="checklist">
+                <div class="checklist" id="claimChecklist">
                   <label><input type="checkbox" checked /> Itemized bill</label>
                   <label><input type="checkbox" checked /> Discharge summary</label>
                   <label><input type="checkbox" checked /> Pre-auth approval</label>
@@ -554,14 +563,14 @@
                   <label><input type="checkbox" checked /> ICD/procedure code sheet</label>
                   <label><input type="checkbox" /> Signed claim form</label>
                 </div>
-                <div class="callout danger">
+                <div class="callout danger" id="claimWarning">
                   <strong>2 blocking documents missing</strong>
                   <p>Final authorization and signed claim form are required before submission for Star Health cashless claims.</p>
                 </div>
                 <div class="action-row">
-                  <button class="btn btn-light btn-sm">Download Packet</button>
-                  <button class="btn btn-warning btn-sm">Request Missing Docs</button>
-                  <button class="btn btn-primary btn-sm">Submit Claim</button>
+                  <button class="btn btn-light btn-sm" data-action="download-packet">Download Packet</button>
+                  <button class="btn btn-warning btn-sm" data-action="request-docs">Request Missing Docs</button>
+                  <button class="btn btn-primary btn-sm" data-action="submit-claim">Submit Claim</button>
                 </div>
               </section>
 
@@ -570,7 +579,7 @@
                   <h3>Claim Financials</h3>
                   <span class="badge badge-soft-info">Receivable linked</span>
                 </div>
-                <div class="snapshot large">
+                <div class="snapshot large" id="claimFinancials">
                   <div><span>Claim ID</span><strong>CLM-STAR-24-7781</strong></div>
                   <div><span>Bill number</span><strong>BL-OPDIPD-99120</strong></div>
                   <div><span>Submitted amount</span><strong>INR 1,32,820</strong></div>
@@ -578,7 +587,7 @@
                   <div><span>Denial risk</span><strong>Medium</strong></div>
                   <div><span>Owner</span><strong>Insurance Desk</strong></div>
                 </div>
-                <div class="mini-table">
+                <div class="mini-table" id="shortfallTable">
                   <div><span>Possible shortfall</span><span>Reason</span></div>
                   <div><strong>INR 4,000</strong><span>Room cap</span></div>
                   <div><strong>INR 8,600</strong><span>Excluded items</span></div>
@@ -594,16 +603,17 @@
                   <h3>Bulk Service Pricing Upload</h3>
                   <p>Dry-run validation, approval, versioning, and activation workflow.</p>
                 </div>
-                <button class="btn btn-primary btn-sm">Upload XLSX / CSV</button>
+                <button class="btn btn-primary btn-sm" data-action="upload-pricing">Upload XLSX / CSV</button>
+                <input id="pricingFile" type="file" accept=".csv,text/csv" hidden />
               </div>
-              <div class="upload-drop">
+              <div class="upload-drop" id="uploadDrop">
                 <div class="upload-icon">CSV</div>
                 <div>
                   <strong>STAR_ORTHO_RATES_APR_2026.xlsx</strong>
                   <p>10,000 rows processed in dry-run mode. No database writes yet.</p>
                 </div>
               </div>
-              <div class="validation-grid">
+              <div class="validation-grid" id="validationGrid">
                 <div class="validation-card success"><span>Valid rows</span><strong>9,742</strong></div>
                 <div class="validation-card warning"><span>Warnings</span><strong>211</strong></div>
                 <div class="validation-card danger"><span>Errors</span><strong>47</strong></div>
@@ -621,7 +631,7 @@
                       <th>Message</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="pricingRows">
                     <tr><td>PKG-ORTHO-221</td><td>INR 92,000</td><td>INR 95,000</td><td>01 Apr 2026</td><td><span class="badge badge-soft-success">Valid</span></td><td>Will activate after approval</td></tr>
                     <tr><td>LAB-CBC-001</td><td>INR 420</td><td>INR 840</td><td>01 Apr 2026</td><td><span class="badge badge-soft-warning">Variance</span></td><td>100% rate increase needs finance approval</td></tr>
                     <tr><td>RAD-MRI-999</td><td>-</td><td>INR 3,200</td><td>01 Apr 2026</td><td><span class="badge badge-soft-danger">Error</span></td><td>Service code not found</td></tr>
@@ -629,9 +639,9 @@
                 </table>
               </div>
               <div class="action-row">
-                <button class="btn btn-light btn-sm">Download Error File</button>
-                <button class="btn btn-warning btn-sm">Proceed Valid Rows</button>
-                <button class="btn btn-primary btn-sm">Send for Finance Approval</button>
+                <button class="btn btn-light btn-sm" data-action="download-errors">Download Error File</button>
+                <button class="btn btn-warning btn-sm" data-action="proceed-valid-rows">Proceed Valid Rows</button>
+                <button class="btn btn-primary btn-sm" data-action="send-approval">Send for Finance Approval</button>
               </div>
             </div>
           </section>
@@ -644,7 +654,7 @@
                     <h3>NABH Evidence Matrix</h3>
                     <p>Audit-ready proof for insurance workflow controls.</p>
                   </div>
-                  <button class="btn btn-primary btn-sm">Export Evidence</button>
+                  <button class="btn btn-primary btn-sm" data-action="export-evidence">Export Evidence</button>
                 </div>
                 <div class="evidence-list">
                   <div><strong>Role-based access</strong><span class="badge badge-soft-success">Mapped</span><p>Insurance admin, billing, desk, finance, supervisor, auditor.</p></div>
@@ -659,7 +669,7 @@
                   <h3>Recent Audit Events</h3>
                   <span class="badge badge-soft-dark">Read only</span>
                 </div>
-                <div class="audit-feed">
+                <div class="audit-feed" id="auditFeed">
                   <div><strong>10:42</strong><p>Eligibility verified manually for UHID M16-245901 by Anita.</p></div>
                   <div><strong>10:56</strong><p>Pre-auth PA-STAR-2026-000487 approved amount updated from INR 0 to INR 1,50,000.</p></div>
                   <div><strong>11:08</strong><p>Billing split preview generated and locked to policy snapshot.</p></div>
@@ -687,6 +697,8 @@
       </div>
       <div id="drawerBody"></div>
     </aside>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
     <script src="./app.js"></script>
   </body>

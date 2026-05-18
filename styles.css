@@ -630,6 +630,31 @@ button {
   border-color: rgba(241, 180, 76, 0.28);
 }
 
+.billing-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--light-border);
+  background: #fbfcfd;
+}
+
+.billing-controls label {
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+.billing-controls input {
+  width: 100%;
+  margin-top: 6px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  min-height: 34px;
+  padding: 5px 9px;
+}
+
 .action-row {
   display: flex;
   justify-content: flex-end;
@@ -1065,6 +1090,52 @@ button {
   gap: 10px;
 }
 
+.toast-stack {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1100;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 36px));
+}
+
+.prototype-toast {
+  background: #fff;
+  border: 1px solid var(--light-border);
+  border-left: 3px solid var(--primary);
+  box-shadow: 0 8px 24px rgba(42, 48, 66, 0.12);
+  border-radius: 4px;
+  padding: 12px;
+  color: var(--text);
+}
+
+.prototype-toast strong {
+  display: block;
+  color: var(--heading);
+  margin-bottom: 2px;
+}
+
+.prototype-toast.success {
+  border-left-color: var(--success);
+}
+
+.prototype-toast.warning {
+  border-left-color: var(--warning);
+}
+
+.prototype-toast.danger {
+  border-left-color: var(--danger);
+}
+
+.editable-input {
+  width: 96px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  min-height: 30px;
+  padding: 4px 8px;
+}
+
 @media (max-width: 1180px) {
   .app-shell {
     grid-template-columns: 70px minmax(0, 1fr);
@@ -1151,6 +1222,7 @@ button {
   .checklist,
   .validation-grid,
   .billing-summary,
+  .billing-controls,
   .preauth-stats {
     grid-template-columns: 1fr;
   }
