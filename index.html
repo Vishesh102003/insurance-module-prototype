@@ -1,705 +1,1231 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Insurance & IRMS Prototype</title>
-    <link rel="stylesheet" href="./assets/bootstrap.css" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <div class="brand-box">
-          <img src="./assets/metahoslogo.svg" alt="Meta hOS" />
-          <span>MetahOS</span>
-        </div>
-        <nav class="nav-menu" aria-label="Insurance prototype navigation">
-          <button class="nav-link active" data-screen="dashboard">
-            <span class="nav-icon">D</span>
-            Dashboard
-          </button>
-          <button class="nav-link" data-screen="patient">
-            <span class="nav-icon">P</span>
-            Patient Policy
-          </button>
-          <button class="nav-link" data-screen="master">
-            <span class="nav-icon">M</span>
-            Insurance Master
-          </button>
-          <button class="nav-link" data-screen="verification">
-            <span class="nav-icon">V</span>
-            Verification
-          </button>
-          <button class="nav-link" data-screen="preauth">
-            <span class="nav-icon">A</span>
-            Pre-Auth
-          </button>
-          <button class="nav-link" data-screen="billing">
-            <span class="nav-icon">B</span>
-            Billing Split
-          </button>
-          <button class="nav-link" data-screen="claims">
-            <span class="nav-icon">C</span>
-            Claim Packet
-          </button>
-          <button class="nav-link" data-screen="pricing">
-            <span class="nav-icon">R</span>
-            Rate Upload
-          </button>
-          <button class="nav-link" data-screen="audit">
-            <span class="nav-icon">L</span>
-            Audit & NABH
-          </button>
-        </nav>
-      </aside>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleOPD — IRMS Prototype (Existing + Enhancements)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#556ee6; --primary-dark:#4458b8; --secondary:#74788d;
+    --success:#34c38f; --danger:#f46a6a; --warning:#f1b44c; --info:#50a5f1;
+    --body-bg:#f8f8fb; --card-bg:#ffffff; --border:#eff2f7;
+    --text:#495057; --text-muted:#74788d; --heading:#343a40;
+    --sidebar-w:250px; --topbar-h:70px;
+    --shadow:0 .75rem 1.5rem rgba(18,38,63,.03);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Poppins',sans-serif;font-size:13px;background:var(--body-bg);color:var(--text)}
+  h1,h2,h3,h4,h5{color:var(--heading);font-weight:500}
+  ::-webkit-scrollbar{height:8px;width:8px}::-webkit-scrollbar-thumb{background:#d4d8e7;border-radius:4px}
+  /* ---------- Sidebar ---------- */
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:#fff;box-shadow:var(--shadow);z-index:50;overflow-y:auto}
+  .logo{height:var(--topbar-h);display:flex;align-items:center;gap:8px;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:2}
+  .logo .mark{width:34px;height:34px;border-radius:8px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none}
+  .logo b{font-size:16px;color:var(--heading)} .logo span{color:var(--text-muted);font-size:10px;display:block;margin-top:-2px}
+  .menu-title{padding:14px 20px 6px;font-size:10px;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 20px;color:#545a6d;cursor:pointer;font-size:12.5px;border-left:3px solid transparent}
+  .nav-item .ic{width:17px;text-align:center;color:#7f8387;font-size:13px;flex:none}
+  .nav-item:hover{color:#383c40;background:#f8f9fa}
+  .nav-item.active{color:var(--primary);border-left-color:var(--primary);background:#f6f8ff}
+  .nav-item.active .ic{color:var(--primary)}
+  .nav-item .badge-new{margin-left:auto;background:rgba(52,195,143,.18);color:var(--success);font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600}
+  /* ---------- Topbar ---------- */
+  .topbar{position:fixed;left:var(--sidebar-w);right:0;top:0;height:var(--topbar-h);background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:var(--shadow);z-index:40}
+  .gsearch{background:#f3f3f9;border-radius:20px;padding:8px 16px;color:var(--text-muted);width:260px;font-size:12px;border:none;font-family:inherit}
+  .top-right{display:flex;align-items:center;gap:16px}
+  .help-btn{width:34px;height:34px;border-radius:50%;background:rgba(85,110,230,.12);color:var(--primary);border:none;font-family:inherit;font-weight:600;font-size:15px;cursor:pointer}
+  .avatar{display:flex;align-items:center;gap:8px}
+  .avatar .circ{width:34px;height:34px;border-radius:50%;background:var(--warning);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+  .avatar small{color:var(--text-muted);display:block}
+  /* ---------- Layout ---------- */
+  .main{margin-left:var(--sidebar-w);padding:calc(var(--topbar-h) + 20px) 24px 40px}
+  .page{display:none} .page.active{display:block}
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+  .breadcrumb{font-size:11px;color:var(--text-muted)} .breadcrumb b{color:var(--text)}
+  .card{background:var(--card-bg);border-radius:6px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+  .grid{display:grid;gap:14px} .grid.c4{grid-template-columns:repeat(4,1fr)} .grid.c3{grid-template-columns:repeat(3,1fr)} .grid.c2{grid-template-columns:repeat(2,1fr)}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .toolbar .spacer{flex:1}
+  /* ---------- Components ---------- */
+  .btn{font-family:inherit;font-size:12.5px;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;transition:.15s}
+  .btn-primary{background:var(--primary);color:#fff} .btn-primary:hover{background:var(--primary-dark)}
+  .btn-light{background:#eff2f7;color:var(--text)} .btn-light:hover{background:#e2e6ee}
+  .btn-success{background:var(--success);color:#fff} .btn-danger{background:var(--danger);color:#fff}
+  .btn-outline{background:#fff;border:1px solid var(--primary);color:var(--primary)}
+  .btn-sm{padding:3px 9px;font-size:11px}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .chip{display:inline-block;padding:2px 9px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap}
+  .chip.ok{background:rgba(52,195,143,.15);color:var(--success)}
+  .chip.warn{background:rgba(241,180,76,.18);color:#c98f2e}
+  .chip.bad{background:rgba(244,106,106,.15);color:var(--danger)}
+  .chip.info{background:rgba(85,110,230,.13);color:var(--primary)}
+  .chip.muted{background:#eff2f7;color:var(--text-muted)}
+  .chip.sec{background:#eff2f7;color:#545a6d}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px}
+  table{width:100%;border-collapse:collapse}
+  th{background:#F8F9FA;color:#495057;text-align:left;padding:9px 10px;font-size:11px;font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+  th:hover{background:#eff2f7}
+  td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:11.5px;white-space:nowrap}
+  tr:hover td{background:#f8f9fa}
+  td.num,th.num{text-align:right}
+  .kpi{display:flex;justify-content:space-between;align-items:flex-start}
+  .kpi .num{font-size:20px;font-weight:600;color:var(--heading);margin-top:5px}
+  .kpi .lbl{color:var(--text-muted);font-size:11.5px}
+  .kpi .ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;background:var(--primary);flex:none}
+  label{display:block;font-size:11px;font-weight:500;color:var(--heading);margin:8px 0 3px}
+  label .req{color:var(--danger)}
+  input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:7px 9px;border:1px solid #ced4da;border-radius:4px;font-family:inherit;font-size:12px;color:var(--text);background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
+  .search-input{width:220px !important}
+  .hint{font-size:10px;color:var(--text-muted);margin-top:2px}
+  .alert{border-radius:4px;padding:11px 13px;font-size:12px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
+  .alert.info{background:rgba(85,110,230,.1);color:#3b4db3;border:1px solid rgba(85,110,230,.25)}
+  .alert.success{background:rgba(52,195,143,.1);color:#1d7a59;border:1px solid rgba(52,195,143,.3)}
+  .alert.warn{background:rgba(241,180,76,.12);color:#9a6c1c;border:1px solid rgba(241,180,76,.35)}
+  .alert.danger{background:rgba(244,106,106,.1);color:#b03b3b;border:1px solid rgba(244,106,106,.3)}
+  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0 14px}
+  .form-grid.c3{grid-template-columns:repeat(3,1fr)}
+  .form-grid.c2{grid-template-columns:repeat(2,1fr)}
+  .sect-head{font-size:12.5px;font-weight:600;color:var(--heading);border-bottom:2px solid var(--primary);padding-bottom:5px;margin:18px 0 6px}
+  /* ---------- Stepper ---------- */
+  .stepper{display:flex;margin-bottom:20px}
+  .step{flex:1;text-align:center;position:relative;font-size:10.5px;color:var(--text-muted)}
+  .step .dot{width:28px;height:28px;border-radius:50%;background:#eff2f7;color:var(--text-muted);display:flex;align-items:center;justify-content:center;margin:0 auto 5px;font-weight:600;border:2px solid #eff2f7}
+  .step:not(:last-child):after{content:'';position:absolute;top:14px;left:calc(50% + 17px);right:calc(-50% + 17px);height:2px;background:#eff2f7}
+  .step.done .dot{background:var(--success);border-color:var(--success);color:#fff}
+  .step.done:after{background:var(--success)}
+  .step.current .dot{background:#fff;border-color:var(--primary);color:var(--primary)}
+  .step.current{color:var(--primary);font-weight:600}
+  /* ---------- Modal ---------- */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:36px 16px}
+  .modal-bg.open{display:flex}
+  .modal{background:#fff;border-radius:6px;width:680px;max-width:96vw;box-shadow:0 .5rem 1rem rgba(0,0,0,.4)}
+  .modal.wide{width:860px}
+  .modal-h{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .modal-h h4{font-size:13.5px}
+  .modal-x{border:none;background:none;font-size:18px;cursor:pointer;color:var(--text-muted)}
+  .modal-b{padding:16px 18px;max-height:65vh;overflow-y:auto} .modal-f{padding:11px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+  /* ---------- Tour ---------- */
+  .tour-bg{position:fixed;inset:0;background:rgba(18,38,63,.72);z-index:200;display:none}
+  .tour-bg.open{display:block}
+  .tour-card{position:fixed;z-index:220;background:#fff;border-radius:8px;width:440px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:22px}
+  .tour-card.center{left:50%;top:50%;transform:translate(-50%,-50%)}
+  .tour-step-num{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .tour-card h3{font-size:15.5px;margin-bottom:8px}
+  .tour-card p{font-size:12.5px;color:var(--text);line-height:1.6;margin-bottom:6px}
+  .tour-card ol,.tour-card ul{margin:6px 0 6px 18px;font-size:12.5px;line-height:1.8}
+  .tour-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+  .tour-dots{display:flex;gap:4px}
+  .tour-dots i{width:6px;height:6px;border-radius:50%;background:#dfe3f3;display:block}
+  .tour-dots i.on{background:var(--primary)}
+  .spotlight{position:relative;z-index:210 !important;box-shadow:0 0 0 4px var(--primary),0 0 0 9999px rgba(18,38,63,.72) !important;border-radius:6px;background:#fff}
+  .split-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:12px}
+  .split-row.total{font-weight:600;border-bottom:none;font-size:13px;color:var(--heading)}
+  .pol-card{border:1px solid var(--border);border-radius:6px;padding:13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;gap:10px}
+  .upload-zone{border:2px dashed #c9cfe8;border-radius:6px;padding:30px;text-align:center;color:var(--text-muted);cursor:pointer}
+  .upload-zone:hover{border-color:var(--primary);color:var(--primary)}
+  .bar{height:8px;border-radius:4px;background:#eff2f7;overflow:hidden;margin-top:5px}
+  .bar i{display:block;height:100%}
+  .hbar-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:11px}
+  .hbar-label{width:160px;text-align:right;color:var(--text-muted);flex:none}
+  .hbar-track{flex:1;display:flex;height:16px;border-radius:3px;overflow:hidden;background:#f3f3f9}
+  .donut{width:150px;height:150px;border-radius:50%;margin:6px auto}
+  .legend{font-size:10.5px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px}
+  .footer-note{color:var(--text-muted);font-size:11px;text-align:center;margin-top:26px}
+  @media print {.sidebar,.topbar,.toolbar,.tour-bg,.tour-card{display:none !important}.main{margin:0;padding:10px}}
+</style>
+</head>
+<body>
 
-      <main class="main-content">
-        <header class="topbar">
-          <div>
-            <p class="eyebrow">IRMS prototype</p>
-            <h1>Insurance & Receivables Management</h1>
-          </div>
-          <div class="topbar-actions">
-            <div class="search-box">
-              <span>Search</span>
-              <input id="globalSearch" type="search" placeholder="UHID, policy, claim, payer" />
-            </div>
-            <button class="btn btn-light btn-sm" id="openEvidence">NABH Evidence</button>
-            <button class="btn btn-light btn-sm" data-action="reset-demo">Reset Demo</button>
-            <button class="btn btn-primary btn-sm" data-screen-link="patient" data-action="new-policy">Add Policy</button>
-          </div>
-        </header>
+<aside class="sidebar">
+  <div class="logo"><div class="mark">T</div><div><b>TeleOPD</b><span>MetahOS · IRMS</span></div></div>
+  <div class="menu-title">IRMS — Existing Module</div>
+  <div class="nav-item active" data-page="dashboard" id="nav-dashboard"><span class="ic">▦</span> Dashboard</div>
+  <div class="nav-item" data-page="schemes" id="nav-schemes"><span class="ic">🏛</span> Manage Schemes</div>
+  <div class="nav-item" data-page="excluded"><span class="ic">🗑</span> Excluded Payors</div>
+  <div class="nav-item" data-page="contracts" id="nav-contracts"><span class="ic">💲</span> Contract Management</div>
+  <div class="nav-item" data-page="groups"><span class="ic">💳</span> Contract Groups</div>
+  <div class="nav-item" data-page="recform" id="nav-recform"><span class="ic">📝</span> Receivable Form</div>
+  <div class="nav-item" data-page="billingview" id="nav-billingview"><span class="ic">⌨</span> Billing View</div>
+  <div class="nav-item" data-page="auditview"><span class="ic">🛡</span> Audit View</div>
+  <div class="nav-item" data-page="payerrec"><span class="ic">▤</span> Payer Receivables</div>
+  <div class="nav-item" data-page="outstanding" id="nav-outstanding"><span class="ic">👛</span> Outstanding Bills</div>
+  <div class="nav-item" data-page="payerreport" id="nav-payerreport"><span class="ic">📊</span> Payer Report</div>
+  <div class="nav-item" data-page="balsnap"><span class="ic">📋</span> Balance Snapshot</div>
+  <div class="nav-item" data-page="dupbills"><span class="ic">☰</span> Duplicate Bills</div>
+  <div class="nav-item" data-page="ageing"><span class="ic">📁</span> Ageing Report</div>
+  <div class="nav-item" data-page="dwmqy"><span class="ic">📰</span> DWMQY Report</div>
+  <div class="nav-item" data-page="debtage"><span class="ic">📈</span> Debtors Ageing Dashboard</div>
+  <div class="nav-item" data-page="tatdash"><span class="ic">⏱</span> TAT Dashboard</div>
+  <div class="nav-item" data-page="debtsum"><span class="ic">⏲</span> Debtors Summary Dashboard</div>
+  <div class="menu-title">Proposed Enhancements (FRD v2.0)</div>
+  <div class="nav-item" data-page="master" id="nav-master"><span class="ic">🏢</span> Insurance Master <span class="badge-new">NEW</span></div>
+  <div class="nav-item" data-page="patient" id="nav-patient"><span class="ic">👤</span> Patient Insurance <span class="badge-new">NEW</span></div>
+  <div class="nav-item" data-page="billing" id="nav-billing"><span class="ic">₹</span> Insurance Billing <span class="badge-new">NEW</span></div>
+  <div class="nav-item" data-page="preauth" id="nav-preauth"><span class="ic">✓</span> Pre-Auth Tracker <span class="badge-new">NEW</span></div>
+  <div class="nav-item" data-page="pricing" id="nav-pricing"><span class="ic">⇪</span> Bulk Pricing Upload <span class="badge-new">NEW</span></div>
+</aside>
 
-        <section class="page-band">
-          <div class="page-title-row">
-            <div>
-              <h2 id="screenTitle">Insurance Work Queue</h2>
-              <p id="screenSubtitle">Role-wise operational view for registration, insurance desk, billing, and finance.</p>
-            </div>
-            <div class="date-chip">18 May 2026</div>
-          </div>
+<header class="topbar">
+  <input class="gsearch" id="global-search" placeholder="🔍  Search patient, UHID, bill no… (works on list screens)">
+  <div class="top-right">
+    <button class="help-btn" id="btn-tour" title="Restart guided tour">?</button>
+    <div class="avatar"><div class="circ">S</div><div><b style="font-size:12.5px">Sakeena D</b><small>IRMS · Billing Operator</small></div></div>
+  </div>
+</header>
 
-          <section class="screen active" id="screen-dashboard">
-            <div class="kpi-grid">
-              <article class="metric-card">
-                <div class="metric-icon primary">Q</div>
-                <div>
-                  <span>Open insurance tasks</span>
-                  <strong id="kpiTasks">48</strong>
-                  <small id="kpiTasksSub">12 due in next 2 hours</small>
-                </div>
-              </article>
-              <article class="metric-card">
-                <div class="metric-icon warning">A</div>
-                <div>
-                  <span>Pre-auth pending</span>
-                  <strong id="kpiPreauth">17</strong>
-                  <small id="kpiPreauthSub">5 SLA breach risk</small>
-                </div>
-              </article>
-              <article class="metric-card">
-                <div class="metric-icon success">S</div>
-                <div>
-                  <span>Claims ready</span>
-                  <strong id="kpiClaims">32</strong>
-                  <small id="kpiClaimsSub">INR 18.4L claim value</small>
-                </div>
-              </article>
-              <article class="metric-card">
-                <div class="metric-icon danger">E</div>
-                <div>
-                  <span>Exceptions</span>
-                  <strong id="kpiExceptions">9</strong>
-                  <small id="kpiExceptionsSub">Overrides and missing docs</small>
-                </div>
-              </article>
-            </div>
+<div class="main">
 
-            <div class="layout-grid two-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>Insurance Desk Work Queue</h3>
-                    <p>Prioritized by SLA, claim value, and discharge dependency.</p>
-                  </div>
-                  <div class="segmented-control" role="tablist" aria-label="Queue filter">
-                    <button class="segment active" data-queue-filter="all">All</button>
-                    <button class="segment" data-queue-filter="sla">SLA Risk</button>
-                    <button class="segment" data-queue-filter="docs">Docs</button>
-                    <button class="segment" data-queue-filter="billing">Billing</button>
-                  </div>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-hover mb-0">
-                    <thead>
-                      <tr>
-                        <th>Patient</th>
-                        <th>Payer</th>
-                        <th>Stage</th>
-                        <th>SLA</th>
-                        <th>Amount</th>
-                        <th>Owner</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody id="queueRows"></tbody>
-                  </table>
-                </div>
-              </section>
-
-              <aside class="card panel">
-                <div class="panel-header compact">
-                  <h3>Today Flow</h3>
-                  <span class="badge badge-soft-info">Live mock</span>
-                </div>
-                <div class="mini-timeline">
-                  <div class="timeline-item complete">
-                    <span></span>
-                    <div>
-                      <strong>Policy captured</strong>
-                      <p>64 records at registration</p>
-                    </div>
-                  </div>
-                  <div class="timeline-item active">
-                    <span></span>
-                    <div>
-                      <strong>Eligibility checks</strong>
-                      <p>21 manual verifications pending</p>
-                    </div>
-                  </div>
-                  <div class="timeline-item">
-                    <span></span>
-                    <div>
-                      <strong>Pre-auth approval</strong>
-                      <p>5 discharge final auth due</p>
-                    </div>
-                  </div>
-                  <div class="timeline-item">
-                    <span></span>
-                    <div>
-                      <strong>Claim settlement</strong>
-                      <p>INR 8.7L reconciled today</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="callout warning">
-                  <strong>Contract expiry alert</strong>
-                  <p>Star Health and CGHS Jaipur contracts need renewal review within 30 days.</p>
-                  <button class="btn btn-warning btn-sm" data-screen-link="master">Review Contracts</button>
-                </div>
-              </aside>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-patient">
-            <div class="patient-banner">
-              <div class="patient-avatar">RK</div>
-              <div>
-                <h3>Rakesh Kumar</h3>
-                <p>UHID M16-245901 | IPD 24-1108 | Male, 47y | Ortho admission</p>
-              </div>
-              <div class="banner-badges">
-                <span class="badge badge-soft-success">Primary verified</span>
-                <span class="badge badge-soft-warning">Secondary pending</span>
-                <span class="badge badge-soft-info">Consent captured</span>
-              </div>
-            </div>
-
-            <div class="layout-grid one-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>Patient Insurance Policies</h3>
-                    <p>Multi-policy support with priority and verification status.</p>
-                  </div>
-                  <button class="btn btn-primary btn-sm" data-action="new-policy">Add Policy</button>
-                </div>
-                <div class="policy-list" id="policyList">
-                  <article class="policy-card selected">
-                    <div class="policy-top">
-                      <div>
-                        <strong>Primary - Star Health Cashless</strong>
-                        <p>Policy SH-8821-0091 | Member STAR-443210</p>
-                      </div>
-                      <span class="badge badge-soft-success">Verified</span>
-                    </div>
-                    <dl>
-                      <div><dt>Holder</dt><dd>Self</dd></div>
-                      <div><dt>Validity</dt><dd>01 Apr 2026 - 31 Mar 2027</dd></div>
-                      <div><dt>Sum insured</dt><dd>INR 5,00,000</dd></div>
-                      <div><dt>Available</dt><dd>INR 3,86,400</dd></div>
-                    </dl>
-                  </article>
-                  <article class="policy-card">
-                    <div class="policy-top">
-                      <div>
-                        <strong>Secondary - ABC Corporate</strong>
-                        <p>Employee AB-7831 | Group ACC-2026-NORTH</p>
-                      </div>
-                      <span class="badge badge-soft-warning">Manual check</span>
-                    </div>
-                    <dl>
-                      <div><dt>Holder</dt><dd>Employee</dd></div>
-                      <div><dt>Validity</dt><dd>01 Jan 2026 - 31 Dec 2026</dd></div>
-                      <div><dt>Credit limit</dt><dd>INR 1,50,000</dd></div>
-                      <div><dt>Available</dt><dd>INR 92,500</dd></div>
-                    </dl>
-                  </article>
-                </div>
-              </section>
-
-              <section class="card panel">
-                <div class="panel-header compact">
-                  <h3>Policy Capture Form</h3>
-                  <span class="badge badge-soft-primary">Registration Desk</span>
-                </div>
-                <div class="form-grid">
-                  <label>Insurance provider<select id="policyProvider"><option>Star Health Cashless</option><option>CGHS Jaipur</option><option>ABC Corporate</option><option>Self + Reimbursement</option></select></label>
-                  <label>Insurance type<select id="policyType"><option>Cashless</option><option>Corporate</option><option>Government Scheme</option><option>Reimbursement</option></select></label>
-                  <label>Policy number<input id="policyNumber" value="SH-8821-0091" /></label>
-                  <label>Member/card ID<input id="memberId" value="STAR-443210" /></label>
-                  <label>Holder type<select id="holderType"><option>Self</option><option>Spouse</option><option>Child</option><option>Parent</option></select></label>
-                  <label>Priority<select id="policyPriority"><option>Primary</option><option>Secondary</option><option>Tertiary</option></select></label>
-                  <label>Valid from<input id="validFrom" type="date" value="2026-04-01" /></label>
-                  <label>Valid to<input id="validTo" type="date" value="2027-03-31" /></label>
-                  <label>Sum insured / credit limit<input id="sumInsured" type="number" value="500000" /></label>
-                  <label>Available balance<input id="availableBalance" type="number" value="386400" /></label>
-                </div>
-                <div class="document-strip" id="policyDocs">
-                  <button class="doc-pill done" data-doc-toggle="Insurance card">Insurance card</button>
-                  <button class="doc-pill done" data-doc-toggle="Photo ID">Photo ID</button>
-                  <button class="doc-pill done" data-doc-toggle="Consent">Consent</button>
-                  <button class="doc-pill pending" data-doc-toggle="Policy copy">Policy copy</button>
-                </div>
-                <div class="action-row">
-                  <button class="btn btn-light btn-sm" data-screen-link="verification">Verify Eligibility</button>
-                  <button class="btn btn-primary btn-sm" data-action="save-policy">Save Policy</button>
-                </div>
-              </section>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-master">
-            <div class="layout-grid two-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>Insurance Master</h3>
-                    <p>Contract, rule, TPA, SLA, and integration control point.</p>
-                  </div>
-                  <button class="btn btn-primary btn-sm" data-action="new-master">New Insurance</button>
-                </div>
-                <div class="master-grid" id="masterGrid">
-                  <article class="master-row active">
-                    <div>
-                      <strong>Star Health</strong>
-                      <p>STAR | Cashless | TPA: MediAssist | Pricing: STAR-ORTHO-26</p>
-                    </div>
-                    <span class="badge badge-soft-success">Active</span>
-                  </article>
-                  <article class="master-row warning">
-                    <div>
-                      <strong>CGHS Jaipur</strong>
-                      <p>CGHS-JPR | Government Scheme | Package rate billing</p>
-                    </div>
-                    <span class="badge badge-soft-warning">Expires in 22d</span>
-                  </article>
-                  <article class="master-row">
-                    <div>
-                      <strong>ABC Corporate</strong>
-                      <p>ABC-CORP | Corporate | Monthly invoice | Credit INR 15L</p>
-                    </div>
-                    <span class="badge badge-soft-info">Portal</span>
-                  </article>
-                </div>
-              </section>
-
-              <section class="card panel">
-                <div class="panel-header compact">
-                  <h3>Selected Contract Rules</h3>
-                  <span class="badge badge-soft-danger">Pre-auth required</span>
-                </div>
-                <div class="rule-list" id="ruleList">
-                  <div><span>Short code</span><strong>STAR</strong></div>
-                  <div><span>Contract validity</span><strong>01 Apr 2026 - 31 Mar 2027</strong></div>
-                  <div><span>Pre-auth SLA</span><strong>60 min</strong></div>
-                  <div><span>Final auth SLA</span><strong>180 min</strong></div>
-                  <div><span>ICD/CPT required</span><strong>Yes</strong></div>
-                  <div><span>Co-pay default</span><strong>10%</strong></div>
-                  <div><span>Room cap</span><strong>INR 5,000/day</strong></div>
-                  <div><span>Integration</span><strong>API + Manual fallback</strong></div>
-                </div>
-                <div class="action-row">
-                  <button class="btn btn-light btn-sm" data-screen-link="audit">View Audit</button>
-                  <button class="btn btn-primary btn-sm" data-action="edit-master">Edit Rules</button>
-                </div>
-              </section>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-verification">
-            <div class="layout-grid one-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>Eligibility Verification</h3>
-                    <p>API, file, portal, and manual workflows share one outcome model.</p>
-                  </div>
-                  <span class="badge badge-soft-warning">Manual fallback</span>
-                </div>
-                <div class="verification-status">
-                  <div class="verify-step complete">Policy active</div>
-                  <div class="verify-step complete">Identity match</div>
-                  <div class="verify-step active">Benefit check</div>
-                  <div class="verify-step">Pre-auth needed</div>
-                </div>
-                <div class="form-grid">
-                  <label>Verification mode<select id="verificationMode"><option>Manual phone call</option><option>Insurer API</option><option>Portal check</option><option>SFTP batch</option></select></label>
-                  <label>TPA contact<input id="verificationContact" value="MediAssist Helpdesk" /></label>
-                  <label>Reference / call ID<input id="verificationRef" value="MA-REF-983722" /></label>
-                  <label>Outcome<select id="verificationOutcome"><option>Verified with exclusions</option><option>Verified</option><option>Rejected</option><option>Query raised</option></select></label>
-                  <label>Approved service scope<input id="verificationScope" value="Ortho procedure, ward stay, diagnostics" /></label>
-                  <label>Waiting period notes<input id="verificationNotes" value="Maternity excluded; ortho covered" /></label>
-                </div>
-                <div class="callout info">
-                  <strong>Structured manual handling</strong>
-                  <p>Every phone/portal/email verification captures contact, reference, outcome, exclusions, next follow-up, and operator.</p>
-                </div>
-                <div class="action-row">
-                  <button class="btn btn-light btn-sm" data-action="save-verification-pending">Save as Pending</button>
-                  <button class="btn btn-primary btn-sm" data-action="create-preauth">Create Pre-Auth</button>
-                </div>
-              </section>
-
-              <section class="card panel">
-                <div class="panel-header compact">
-                  <h3>Verification Snapshot</h3>
-                  <span class="badge badge-soft-success">Audit locked</span>
-                </div>
-                <div class="snapshot" id="verificationSnapshot">
-                  <div><span>Verified by</span><strong>Insurance Desk - Anita</strong></div>
-                  <div><span>Verified at</span><strong>18 May 2026, 10:42 AM</strong></div>
-                  <div><span>Source</span><strong>Manual phone call</strong></div>
-                  <div><span>Policy status</span><strong>Active</strong></div>
-                  <div><span>Eligibility</span><strong>Covered</strong></div>
-                  <div><span>Exclusions</span><strong>Non-medical consumables</strong></div>
-                </div>
-                <div class="mini-table" id="verificationDocs">
-                  <div><span>Document</span><span>Status</span></div>
-                  <div><strong>Insurance card</strong><span class="badge badge-soft-success">Done</span></div>
-                  <div><strong>Government ID</strong><span class="badge badge-soft-success">Done</span></div>
-                  <div><strong>Policy copy</strong><span class="badge badge-soft-warning">Pending</span></div>
-                </div>
-              </section>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-preauth">
-            <div class="layout-grid one-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>Pre-Authorization Tracker</h3>
-                    <p>Tracks request, query, approval, amendment, and final authorization.</p>
-                  </div>
-                  <span class="badge badge-soft-danger" id="preauthDueBadge">Due in 34 min</span>
-                </div>
-                <div class="preauth-card" id="preauthCard">
-                  <div class="preauth-head">
-                    <div>
-                      <strong>PA-STAR-2026-000487</strong>
-                      <p>Requested INR 1,85,000 | Approved INR 1,50,000</p>
-                    </div>
-                    <span class="badge badge-soft-success">Partially approved</span>
-                  </div>
-                  <div class="progress slim">
-                    <div class="progress-bar bg-success" style="width: 81%"></div>
-                  </div>
-                  <div class="preauth-stats">
-                    <div><span>Requested</span><strong>INR 1,85,000</strong></div>
-                    <div><span>Approved</span><strong>INR 1,50,000</strong></div>
-                    <div><span>Utilized</span><strong>INR 1,21,400</strong></div>
-                    <div><span>Balance</span><strong>INR 28,600</strong></div>
-                  </div>
-                </div>
-                <div class="workflow-steps">
-                  <button class="workflow-step complete">Draft</button>
-                  <button class="workflow-step complete">Submitted</button>
-                  <button class="workflow-step complete">Query answered</button>
-                  <button class="workflow-step active">Approved</button>
-                  <button class="workflow-step">Final auth</button>
-                </div>
-                <div class="action-row">
-                  <button class="btn btn-warning btn-sm" data-action="request-amendment">Request Amendment</button>
-                  <button class="btn btn-primary btn-sm" data-action="proceed-billing">Proceed to Billing</button>
-                </div>
-              </section>
-
-              <section class="card panel">
-                <div class="panel-header compact">
-                  <h3>Approved Scope</h3>
-                  <span class="badge badge-soft-info">Line validation</span>
-                </div>
-                <div class="scope-list" id="scopeList">
-                  <div><strong>Ortho package</strong><span>INR 95,000</span><em>Covered</em></div>
-                  <div><strong>Ward room rent</strong><span>INR 5,000/day</span><em>Cap applies</em></div>
-                  <div><strong>Diagnostics</strong><span>INR 22,500</span><em>Covered</em></div>
-                  <div><strong>Non-medical items</strong><span>INR 8,600</span><em>Patient payable</em></div>
-                </div>
-                <div class="callout warning" id="preauthWarning">
-                  <strong>Amendment suggested</strong>
-                  <p>Current bill estimate exceeds approved balance by INR 12,800.</p>
-                </div>
-              </section>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-billing">
-            <div class="card panel">
-              <div class="panel-header">
-                <div>
-                  <h3>Billing Split Preview</h3>
-                  <p>Line-level payer and patient liability before final bill lock.</p>
-                </div>
-                <div class="banner-badges">
-                  <span class="badge badge-soft-success" id="billingPolicyBadge">Policy verified</span>
-                  <span class="badge badge-soft-success" id="billingPreauthBadge">Pre-auth approved</span>
-                  <span class="badge badge-soft-warning" id="billingCapBadge">Cap exceeded</span>
-                </div>
-              </div>
-              <div class="billing-controls">
-                <label>Co-pay %<input id="coPayInput" type="number" min="0" max="100" value="10" /></label>
-                <label>Room cap/day<input id="roomCapInput" type="number" min="0" value="5000" /></label>
-                <label>Deductible<input id="deductibleInput" type="number" min="0" value="0" /></label>
-                <button class="btn btn-light btn-sm" data-action="apply-billing-rules">Recalculate</button>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-hover billing-table">
-                  <thead>
-                    <tr>
-                      <th>Service</th>
-                      <th>Standard</th>
-                      <th>Contract</th>
-                      <th>Rule</th>
-                      <th>Insurer</th>
-                      <th>Patient</th>
-                    </tr>
-                  </thead>
-                  <tbody id="billingRows">
-                    <tr>
-                      <td><strong>Ortho surgery package</strong><small>PKG-ORTHO-221</small></td>
-                      <td>INR 1,10,000</td>
-                      <td>INR 95,000</td>
-                      <td><span class="badge badge-soft-success">Package covered</span></td>
-                      <td>INR 95,000</td>
-                      <td>INR 0</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Room rent - 4 days</strong><small>WARD-DELUXE</small></td>
-                      <td>INR 28,000</td>
-                      <td>INR 24,000</td>
-                      <td><span class="badge badge-soft-warning">Cap 5,000/day</span></td>
-                      <td>INR 20,000</td>
-                      <td>INR 4,000</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Diagnostics</strong><small>LAB + RAD</small></td>
-                      <td>INR 22,500</td>
-                      <td>INR 19,800</td>
-                      <td><span class="badge badge-soft-success">Covered</span></td>
-                      <td>INR 17,820</td>
-                      <td>INR 1,980</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Non-medical consumables</strong><small>NMC-001</small></td>
-                      <td>INR 8,600</td>
-                      <td>INR 8,600</td>
-                      <td><span class="badge badge-soft-danger">Excluded</span></td>
-                      <td>INR 0</td>
-                      <td>INR 8,600</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="billing-summary">
-                <div><span>Total bill</span><strong id="billingTotal">INR 1,47,400</strong></div>
-                <div><span>Insurer payable</span><strong id="billingInsurer">INR 1,32,820</strong></div>
-                <div><span>Patient payable</span><strong id="billingPatient">INR 14,580</strong></div>
-                <div><span>Pre-auth balance after bill</span><strong id="billingBalance">INR 17,180</strong></div>
-              </div>
-              <div class="action-row">
-                <button class="btn btn-light btn-sm" data-action="print-estimate">Print Estimate</button>
-                <button class="btn btn-warning btn-sm" data-action="supervisor-override">Supervisor Override</button>
-                <button class="btn btn-primary btn-sm" data-action="finalize-claim">Finalize & Create Claim</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-claims">
-            <div class="layout-grid two-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>Claim Packet Builder</h3>
-                    <p>One claim lifecycle from bill lock to settlement and appeal.</p>
-                  </div>
-                  <span class="badge badge-soft-primary" id="claimStatusBadge">Draft packet</span>
-                </div>
-                <div class="workflow-steps claim-steps" id="claimSteps">
-                  <button class="workflow-step complete">Bill ready</button>
-                  <button class="workflow-step active">Packet check</button>
-                  <button class="workflow-step">Submitted</button>
-                  <button class="workflow-step">Acknowledged</button>
-                  <button class="workflow-step">Settled</button>
-                </div>
-                <div class="checklist" id="claimChecklist">
-                  <label><input type="checkbox" checked /> Itemized bill</label>
-                  <label><input type="checkbox" checked /> Discharge summary</label>
-                  <label><input type="checkbox" checked /> Pre-auth approval</label>
-                  <label><input type="checkbox" checked /> Investigation reports</label>
-                  <label><input type="checkbox" /> Final authorization</label>
-                  <label><input type="checkbox" /> Implant stickers</label>
-                  <label><input type="checkbox" checked /> ICD/procedure code sheet</label>
-                  <label><input type="checkbox" /> Signed claim form</label>
-                </div>
-                <div class="callout danger" id="claimWarning">
-                  <strong>2 blocking documents missing</strong>
-                  <p>Final authorization and signed claim form are required before submission for Star Health cashless claims.</p>
-                </div>
-                <div class="action-row">
-                  <button class="btn btn-light btn-sm" data-action="download-packet">Download Packet</button>
-                  <button class="btn btn-warning btn-sm" data-action="request-docs">Request Missing Docs</button>
-                  <button class="btn btn-primary btn-sm" data-action="submit-claim">Submit Claim</button>
-                </div>
-              </section>
-
-              <section class="card panel">
-                <div class="panel-header compact">
-                  <h3>Claim Financials</h3>
-                  <span class="badge badge-soft-info">Receivable linked</span>
-                </div>
-                <div class="snapshot large" id="claimFinancials">
-                  <div><span>Claim ID</span><strong>CLM-STAR-24-7781</strong></div>
-                  <div><span>Bill number</span><strong>BL-OPDIPD-99120</strong></div>
-                  <div><span>Submitted amount</span><strong>INR 1,32,820</strong></div>
-                  <div><span>Expected TAT</span><strong>15 days</strong></div>
-                  <div><span>Denial risk</span><strong>Medium</strong></div>
-                  <div><span>Owner</span><strong>Insurance Desk</strong></div>
-                </div>
-                <div class="mini-table" id="shortfallTable">
-                  <div><span>Possible shortfall</span><span>Reason</span></div>
-                  <div><strong>INR 4,000</strong><span>Room cap</span></div>
-                  <div><strong>INR 8,600</strong><span>Excluded items</span></div>
-                </div>
-              </section>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-pricing">
-            <div class="card panel">
-              <div class="panel-header">
-                <div>
-                  <h3>Bulk Service Pricing Upload</h3>
-                  <p>Dry-run validation, approval, versioning, and activation workflow.</p>
-                </div>
-                <button class="btn btn-primary btn-sm" data-action="upload-pricing">Upload XLSX / CSV</button>
-                <input id="pricingFile" type="file" accept=".csv,text/csv" hidden />
-              </div>
-              <div class="upload-drop" id="uploadDrop">
-                <div class="upload-icon">CSV</div>
-                <div>
-                  <strong>STAR_ORTHO_RATES_APR_2026.xlsx</strong>
-                  <p>10,000 rows processed in dry-run mode. No database writes yet.</p>
-                </div>
-              </div>
-              <div class="validation-grid" id="validationGrid">
-                <div class="validation-card success"><span>Valid rows</span><strong>9,742</strong></div>
-                <div class="validation-card warning"><span>Warnings</span><strong>211</strong></div>
-                <div class="validation-card danger"><span>Errors</span><strong>47</strong></div>
-                <div class="validation-card info"><span>Approval required</span><strong>18</strong></div>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                  <thead>
-                    <tr>
-                      <th>Service</th>
-                      <th>Current</th>
-                      <th>Uploaded</th>
-                      <th>Effective</th>
-                      <th>Status</th>
-                      <th>Message</th>
-                    </tr>
-                  </thead>
-                  <tbody id="pricingRows">
-                    <tr><td>PKG-ORTHO-221</td><td>INR 92,000</td><td>INR 95,000</td><td>01 Apr 2026</td><td><span class="badge badge-soft-success">Valid</span></td><td>Will activate after approval</td></tr>
-                    <tr><td>LAB-CBC-001</td><td>INR 420</td><td>INR 840</td><td>01 Apr 2026</td><td><span class="badge badge-soft-warning">Variance</span></td><td>100% rate increase needs finance approval</td></tr>
-                    <tr><td>RAD-MRI-999</td><td>-</td><td>INR 3,200</td><td>01 Apr 2026</td><td><span class="badge badge-soft-danger">Error</span></td><td>Service code not found</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="action-row">
-                <button class="btn btn-light btn-sm" data-action="download-errors">Download Error File</button>
-                <button class="btn btn-warning btn-sm" data-action="proceed-valid-rows">Proceed Valid Rows</button>
-                <button class="btn btn-primary btn-sm" data-action="send-approval">Send for Finance Approval</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="screen" id="screen-audit">
-            <div class="layout-grid one-one">
-              <section class="card panel">
-                <div class="panel-header">
-                  <div>
-                    <h3>NABH Evidence Matrix</h3>
-                    <p>Audit-ready proof for insurance workflow controls.</p>
-                  </div>
-                  <button class="btn btn-primary btn-sm" data-action="export-evidence">Export Evidence</button>
-                </div>
-                <div class="evidence-list">
-                  <div><strong>Role-based access</strong><span class="badge badge-soft-success">Mapped</span><p>Insurance admin, billing, desk, finance, supervisor, auditor.</p></div>
-                  <div><strong>Immutable audit trail</strong><span class="badge badge-soft-warning">Backend change needed</span><p>Replace hard delete with void and append-only log.</p></div>
-                  <div><strong>Consent and document sharing</strong><span class="badge badge-soft-success">Prototype flow</span><p>Consent captured at patient-policy level.</p></div>
-                  <div><strong>NHCX readiness</strong><span class="badge badge-soft-info">Data model ready</span><p>Claim packet fields align to structured exchange model.</p></div>
-                </div>
-              </section>
-
-              <section class="card panel">
-                <div class="panel-header compact">
-                  <h3>Recent Audit Events</h3>
-                  <span class="badge badge-soft-dark">Read only</span>
-                </div>
-                <div class="audit-feed" id="auditFeed">
-                  <div><strong>10:42</strong><p>Eligibility verified manually for UHID M16-245901 by Anita.</p></div>
-                  <div><strong>10:56</strong><p>Pre-auth PA-STAR-2026-000487 approved amount updated from INR 0 to INR 1,50,000.</p></div>
-                  <div><strong>11:08</strong><p>Billing split preview generated and locked to policy snapshot.</p></div>
-                  <div><strong>11:12</strong><p>Document "Insurance card" downloaded by Insurance Desk.</p></div>
-                </div>
-                <div class="callout info">
-                  <strong>Compliance note</strong>
-                  <p>All overrides require reason, role, timestamp, and linked patient/claim context before save.</p>
-                </div>
-              </section>
-            </div>
-          </section>
-        </section>
-      </main>
+<!-- ============ DASHBOARD ============ -->
+<section class="page active" id="page-dashboard">
+  <div class="page-head"><h2 style="font-size:16px">Dashboard</h2>
+    <div class="toolbar" style="margin:0">
+      <input type="date" id="dash-from" value="2026-01-01" style="width:140px" onchange="renderDashboard()">
+      <input type="date" id="dash-to" value="2026-06-30" style="width:140px" onchange="renderDashboard()">
+      <select id="dash-auth" style="width:170px" onchange="renderDashboard()"><option value="">All Assigning Authorities</option><option>Main Hospital</option><option>City Clinic</option></select>
     </div>
+  </div>
+  <div class="grid c3" id="dash-kpis"></div>
+  <div class="grid c2">
+    <div class="card"><h4 style="font-size:13px;margin-bottom:10px">Claim Status Breakdown</h4><div class="donut" id="dash-donut"></div><div class="legend" id="dash-legend"></div></div>
+    <div class="card"><h4 style="font-size:13px;margin-bottom:10px">Top Outstanding Payers</h4><div id="dash-toppayers"></div></div>
+  </div>
+  <div class="card"><h4 style="font-size:13px;margin-bottom:10px">Latest Transactions</h4><div class="tbl-wrap"><table id="dash-latest"></table></div></div>
+</section>
 
-    <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
-    <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
-      <div class="drawer-header">
-        <div>
-          <p class="eyebrow">Task details</p>
-          <h3 id="drawerTitle">Insurance task</h3>
-        </div>
-        <button class="icon-btn" id="closeDrawer" aria-label="Close drawer">x</button>
+<!-- ============ MANAGE SCHEMES ============ -->
+<section class="page" id="page-schemes">
+  <div class="page-head"><h2 style="font-size:16px">Manage Schemes</h2><div class="breadcrumb">IRMS / <b>Manage Schemes</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openSchemeModal()">+ Add Scheme</button>
+      <select id="schemes-auth" style="width:170px" onchange="renderSchemes()"><option value="">All Assigning Authorities</option><option>Main Hospital</option><option>City Clinic</option></select>
+      <div class="spacer"></div>
+      <input type="text" class="search-input" placeholder="Search…" oninput="renderSchemes(this.value)">
+      <button class="btn btn-light" onclick="exportCSV(DB.schemes,'schemes.csv')">⤓ Export CSV</button>
+    </div>
+    <div class="tbl-wrap"><table id="tbl-schemes"></table></div>
+  </div>
+</section>
+
+<!-- ============ EXCLUDED PAYORS ============ -->
+<section class="page" id="page-excluded">
+  <div class="page-head"><h2 style="font-size:16px">Excluded Payors</h2><div class="breadcrumb">IRMS / <b>Excluded Payors</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openExcludedModal()">+ Exclude Payor</button>
+      <div class="spacer"></div>
+      <input type="text" class="search-input" placeholder="Search…" oninput="renderExcluded(this.value)">
+    </div>
+    <div class="tbl-wrap"><table id="tbl-excluded"></table></div>
+  </div>
+</section>
+
+<!-- ============ CONTRACT MANAGEMENT ============ -->
+<section class="page" id="page-contracts">
+  <div class="page-head"><h2 style="font-size:16px">Contract Management</h2><div class="breadcrumb">IRMS / <b>Contract Management</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openContractModal()">+ Add Contract</button>
+      <select style="width:170px"><option value="">All Assigning Authorities</option><option>Main Hospital</option><option>City Clinic</option></select>
+      <div class="spacer"></div>
+      <input type="text" class="search-input" placeholder="Search payer…" oninput="renderContracts(this.value)">
+      <button class="btn btn-light" onclick="exportCSV(DB.contracts,'contracts.csv')">⤓ Export CSV</button>
+    </div>
+    <div class="tbl-wrap"><table id="tbl-contracts"></table></div>
+  </div>
+</section>
+
+<!-- ============ CONTRACT GROUPS ============ -->
+<section class="page" id="page-groups">
+  <div class="page-head"><h2 style="font-size:16px">Contract Groups</h2><div class="breadcrumb">IRMS / <b>Contract Groups</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openGroupModal()">+ Add Group</button>
+      <div class="spacer"></div>
+      <input type="text" class="search-input" placeholder="Search…" oninput="renderGroups(this.value)">
+    </div>
+    <div class="tbl-wrap"><table id="tbl-groups"></table></div>
+  </div>
+</section>
+
+<!-- ============ RECEIVABLE FORM ============ -->
+<section class="page" id="page-recform">
+  <div class="page-head"><h2 style="font-size:16px">Receivable Form <span class="chip muted" id="rf-mode">New Entry</span></h2><div class="breadcrumb">IRMS / <b>Receivable Form</b></div></div>
+  <div class="card">
+    <div class="sect-head" style="margin-top:0">Patient Information</div>
+    <div class="form-grid">
+      <div><label>Payer Name <span class="req">*</span></label><select id="rf-payerName"></select></div>
+      <div><label>UHID <span class="req">*</span></label><input type="text" id="rf-uhid"></div>
+      <div><label>Claim ID</label><input type="text" id="rf-claimId"></div>
+      <div><label>TPA</label><input type="text" id="rf-tpa"></div>
+      <div><label>IP Number</label><input type="text" id="rf-ipNumber"></div>
+      <div><label>Bill Number <span class="req">*</span></label><input type="text" id="rf-billNumber"></div>
+      <div><label>Scheme Name <span class="req">*</span></label><select id="rf-schemeName"></select></div>
+      <div><label>Policy Number</label><input type="text" id="rf-policyNumber"></div>
+      <div><label>Bill Date <span class="req">*</span></label><input type="date" id="rf-billDate"></div>
+      <div><label>Patient Name <span class="req">*</span></label><input type="text" id="rf-patientName"></div>
+      <div><label>Date of Scrutiny</label><input type="date" id="rf-dateOfScrutiny"></div>
+      <div><label>Pre Authorization Code</label><input type="text" id="rf-preAuthorizationCode"></div>
+      <div><label>Bill Type <span class="req">*</span></label><select id="rf-billType"><option value="">Select</option><option>IP</option><option>HP</option><option>OP</option><option>PDW</option><option>PH</option><option>Others</option></select></div>
+      <div><label>Age</label><input type="number" id="rf-age"></div>
+      <div><label>Bed Category</label><input type="text" id="rf-bedCategory"></div>
+      <div><label>Department</label><input type="text" id="rf-department"></div>
+      <div><label>Pre Authorization Amount</label><input type="number" id="rf-preAuthorizationAmount"></div>
+      <div><label>Date of Upload</label><input type="date" id="rf-dateOfUpload"></div>
+      <div><label>Date of Admission</label><input type="date" id="rf-dateOfAdmission"></div>
+      <div><label>ID Card #</label><input type="text" id="rf-idCardNumber"></div>
+      <div><label>Date of Dispatch</label><input type="date" id="rf-dateOfDispatch"></div>
+      <div><label>Date of Discharge</label><input type="date" id="rf-dateOfDischarge"></div>
+      <div><label>Proof of Delivery Number</label><input type="text" id="rf-proofOfDeliveryNumber"></div>
+    </div>
+    <div class="sect-head">Financials</div>
+    <div class="form-grid">
+      <div><label>Payer Gross Amount</label><input type="number" id="rf-payerGrossAmount"></div>
+      <div><label>Date of Payment</label><input type="date" id="rf-dateOfPayment"></div>
+      <div><label>Mode of Payment</label><input type="text" id="rf-modeOfPayment"></div>
+      <div><label>Claim Amount</label><input type="number" id="rf-claimAmount" oninput="rfOutstanding()"></div>
+      <div><label>Adjusted Amount</label><input type="number" id="rf-adjustedAmount"></div>
+      <div><label>Payment Reference</label><input type="text" id="rf-paymentReference"></div>
+      <div><label>Amount Received</label><input type="number" id="rf-amountReceived" oninput="rfOutstanding()"></div>
+      <div><label>Adjustment Remarks</label><input type="text" id="rf-adjustmentRemarks"></div>
+      <div><label>Final Outstanding</label><input type="number" id="rf-finalOutstanding" readonly style="background:#f8f9fa"></div>
+      <div><label>TDS</label><input type="number" id="rf-tds" oninput="rfOutstanding()"></div>
+      <div><label>Status <span class="req">*</span></label><select id="rf-status"><option value="">Select</option><option>SETTLED</option><option>SHORT</option><option>SETTLED SHORT</option><option>EXCESS</option><option>ONCO NON CLAIMABLE</option><option>OUTSTANDING</option></select></div>
+      <div><label>Date of Submission</label><input type="date" id="rf-dateOfSubmission"></div>
+    </div>
+    <div class="sect-head">Second Payments</div>
+    <div class="form-grid">
+      <div><label>Second Payment Date</label><input type="date" id="rf-secondPaymentDate"></div>
+      <div><label>Second Payment Amount</label><input type="number" id="rf-secondPaymentAmount"></div>
+      <div><label>Second Payment TDS</label><input type="number" id="rf-secondPaymentTDS"></div>
+      <div><label>Second Payment Adjusted</label><input type="number" id="rf-secondPaymentAdjusted"></div>
+    </div>
+    <div class="sect-head">Remarks</div>
+    <div class="form-grid c2"><div><label>Finance Remarks</label><input type="text" id="rf-financeRemarks"></div></div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveReceivable()">💾 Save Receivable</button>
+      <button class="btn btn-light" onclick="resetRecForm()">Reset</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BILLING / AUDIT / PAYER RECEIVABLES / OUTSTANDING ============ -->
+<section class="page" id="page-billingview">
+  <div class="page-head"><h2 style="font-size:16px">Billing View</h2><div class="breadcrumb">IRMS / <b>Billing View</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <input type="text" class="search-input" placeholder="Search…" oninput="renderRecTable('billingview',this.value)">
+      <div class="spacer"></div>
+      <button class="btn btn-light" onclick="renderRecTable('billingview')">⟳ Refresh</button>
+      <button class="btn btn-light" onclick="exportCSV(DB.receivables,'billing_view.csv')">⤓ Export CSV</button>
+    </div>
+    <div class="tbl-wrap"><table id="tbl-billingview"></table></div>
+  </div>
+</section>
+
+<section class="page" id="page-auditview">
+  <div class="page-head"><h2 style="font-size:16px">Audit View</h2><div class="breadcrumb">IRMS / <b>Audit View</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <input type="text" class="search-input" placeholder="Search…" oninput="renderRecTable('auditview',this.value)">
+      <div class="spacer"></div>
+      <button class="btn btn-light" onclick="renderRecTable('auditview')">⟳ Refresh</button>
+      <button class="btn btn-light" onclick="exportCSV(DB.receivables,'audit_view.csv')">⤓ Export CSV</button>
+    </div>
+    <div class="tbl-wrap"><table id="tbl-auditview"></table></div>
+  </div>
+</section>
+
+<section class="page" id="page-payerrec">
+  <div class="page-head"><h2 style="font-size:16px">Payer Receivables</h2><div class="breadcrumb">IRMS / <b>Payer Receivables</b></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <input type="text" class="search-input" placeholder="Search…" oninput="renderRecTable('payerrec',this.value)">
+      <select id="pr-payer" style="width:160px" onchange="renderRecTable('payerrec')"><option value="">All Payers</option></select>
+      <select id="pr-status" style="width:150px" onchange="renderRecTable('payerrec')"><option value="">All Statuses</option><option>SETTLED</option><option>SHORT</option><option>SETTLED SHORT</option><option>EXCESS</option><option>ONCO NON CLAIMABLE</option><option>OUTSTANDING</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-light" onclick="renderRecTable('payerrec')">⟳ Refresh</button>
+      <button class="btn btn-light" onclick="exportCSV(DB.receivables,'payer_receivables.csv')">⤓ Export CSV</button>
+    </div>
+    <div class="tbl-wrap"><table id="tbl-payerrec"></table></div>
+  </div>
+</section>
+
+<section class="page" id="page-outstanding">
+  <div class="page-head"><h2 style="font-size:16px">Outstanding Bills</h2>
+    <div class="toolbar" style="margin:0">
+      <button class="btn btn-outline" onclick="window.print()">⤓ Export PDF</button>
+      <button class="btn btn-light" onclick="renderOutstanding()">⟳ Refresh</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="toolbar"><input type="text" class="search-input" placeholder="Search…" oninput="renderOutstanding(this.value)"></div>
+    <div class="tbl-wrap"><table id="tbl-outstanding"></table></div>
+  </div>
+</section>
+
+<!-- ============ REPORTS ============ -->
+<section class="page" id="page-payerreport">
+  <div class="page-head"><h2 style="font-size:16px">Payer Report</h2><div class="breadcrumb">IRMS / Reports / <b>Payer Report</b></div></div>
+  <div class="card">
+    <h4 style="font-size:13px;margin-bottom:14px">Amount Raised vs Amount Received — by Payer</h4>
+    <div id="payerreport-chart"></div>
+    <div class="legend"><span><i style="background:#244a80"></i>Amount Raised</span><span><i style="background:#36783c"></i>Amount Received</span></div>
+  </div>
+</section>
+
+<section class="page" id="page-balsnap">
+  <div class="page-head"><h2 style="font-size:16px">Balance Snapshot</h2><div class="breadcrumb">IRMS / Reports / <b>Balance Snapshot</b></div></div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-balsnap"></table></div></div>
+</section>
+
+<section class="page" id="page-dupbills">
+  <div class="page-head"><h2 style="font-size:16px">Duplicate Bills Report</h2><div class="breadcrumb">IRMS / Reports / <b>Duplicate Bills</b></div></div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-dupbills"></table></div></div>
+</section>
+
+<section class="page" id="page-ageing">
+  <div class="page-head"><h2 style="font-size:16px">Ageing Report</h2>
+    <div class="toolbar" style="margin:0"><button class="btn btn-light" onclick="exportAgeingCSV()">⤓ Export CSV</button></div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-ageing"></table></div></div>
+</section>
+
+<section class="page" id="page-dwmqy">
+  <div class="page-head"><h2 style="font-size:16px">DWMQY Report</h2>
+    <div class="toolbar" style="margin:0">
+      <select id="dwmqy-period" style="width:130px" onchange="renderDwmqy()"><option value="M">Monthly</option><option value="Q">Quarterly</option><option value="Y">Yearly</option><option value="D">Daily</option></select>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-dwmqy"></table></div></div>
+</section>
+
+<section class="page" id="page-debtage">
+  <div class="page-head"><h2 style="font-size:16px">Debtors Ageing Dashboard</h2>
+    <div class="toolbar" style="margin:0">
+      <select id="da-billtype" style="width:120px" onchange="renderDebtAge()"><option value="">All Bill Types</option><option>IP</option><option>OP</option><option>HP</option></select>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-debtage"></table></div></div>
+</section>
+
+<section class="page" id="page-tatdash">
+  <div class="page-head"><h2 style="font-size:16px">TAT Dashboard</h2><div class="breadcrumb">IRMS / <b>TAT Dashboard</b></div></div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-tatdash"></table></div></div>
+</section>
+
+<section class="page" id="page-debtsum">
+  <div class="page-head"><h2 style="font-size:16px">Debtors Summary Dashboard</h2><div class="breadcrumb">IRMS / <b>Debtors Summary</b></div></div>
+  <div class="card"><div class="tbl-wrap"><table id="tbl-debtsum"></table></div></div>
+</section>
+
+<!-- ============ ENHANCEMENT: INSURANCE MASTER ============ -->
+<section class="page" id="page-master">
+  <div class="page-head"><h2 style="font-size:16px">Insurance Master <span class="chip ok">Proposed</span></h2>
+    <button class="btn btn-primary" id="btn-add-insurer">+ Add Insurance Provider</button></div>
+  <div class="alert warn" id="master-expiry-alert" style="display:none"></div>
+  <div class="card">
+    <div class="toolbar"><input type="text" class="search-input" placeholder="Search insurer…" oninput="renderMaster(this.value)"><div class="spacer"></div><button class="btn btn-light" onclick="exportCSV(DB.insurers,'insurance_master.csv')">⤓ Export CSV</button></div>
+    <div class="tbl-wrap"><table id="tbl-master"></table></div>
+  </div>
+</section>
+
+<!-- ============ ENHANCEMENT: PATIENT INSURANCE ============ -->
+<section class="page" id="page-patient">
+  <div class="page-head"><h2 style="font-size:16px">Patient Insurance <span class="chip ok">Proposed</span></h2><div class="breadcrumb">IRMS / <b>Patient Insurance</b></div></div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:46px;height:46px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px">RK</div>
+      <div><b style="font-size:14px">Ravi Kumar</b> <span class="chip ok" style="margin-left:6px">Insurance Verified</span><br><small style="color:var(--text-muted)">UHID: TLO-2024-08812 · M / 46 yrs · +91 98xxxxxx21</small></div>
+    </div>
+    <button class="btn btn-primary" id="btn-add-policy">+ Add Insurance Policy</button>
+  </div>
+  <div class="card">
+    <h4 style="font-size:13.5px;margin-bottom:12px">Linked Policies <small style="color:var(--text-muted);font-weight:400">(max 5 — billed in priority order)</small></h4>
+    <div id="policy-list"></div>
+  </div>
+</section>
+
+<!-- ============ ENHANCEMENT: BILLING WIZARD ============ -->
+<section class="page" id="page-billing">
+  <div class="page-head"><h2 style="font-size:16px">Insurance Billing — OPD Encounter <span class="chip ok">Proposed</span></h2><div class="breadcrumb">IRMS / <b>Insurance Billing</b></div></div>
+  <div class="stepper" id="bill-stepper">
+    <div class="step current"><div class="dot">1</div>Check-In</div>
+    <div class="step"><div class="dot">2</div>Select Insurance</div>
+    <div class="step"><div class="dot">3</div>Pre-Auth</div>
+    <div class="step"><div class="dot">4</div>Add Services</div>
+    <div class="step"><div class="dot">5</div>Split Bill</div>
+    <div class="step"><div class="dot">6</div>Done</div>
+  </div>
+  <div class="card" id="bill-step-1">
+    <div class="alert info"><b>ℹ</b><div><b>Insurance detected.</b> Ravi Kumar (UHID TLO-2024-08812) has active policies. Primary: <b>Star Health — Family Health Optima</b> (verified, valid till 31-Mar-2027).</div></div>
+    <p style="margin-bottom:14px">Insurance is auto-detected at check-in — no manual lookup. Confirm whether this encounter uses insurance.</p>
+    <button class="btn btn-primary" onclick="billGo(2)">Use Insurance for this Visit</button>
+    <button class="btn btn-light" onclick="toast('Self-pay billing flow would continue in the standard Bill Management module.')">Bill as Self-Pay</button>
+  </div>
+  <div class="card" id="bill-step-2" style="display:none">
+    <h4 style="font-size:13.5px;margin-bottom:12px">Select insurance for this encounter</h4>
+    <div id="bill-policy-options"></div>
+    <div style="margin-top:14px"><button class="btn btn-light" onclick="billGo(1)">← Back</button> <button class="btn btn-primary" onclick="billGo(3)">Continue →</button></div>
+  </div>
+  <div class="card" id="bill-step-3" style="display:none">
+    <h4 style="font-size:13.5px;margin-bottom:12px">Pre-Authorization check <span class="chip info">Cashless insurer — pre-auth mandatory</span></h4>
+    <div class="alert success" id="preauth-ok" style="display:none"><b>✓</b><div><b>Pre-auth verified.</b> Approved ₹80,000 for General Medicine consult + diagnostics. Valid till 10-Jun-2026.</div></div>
+    <label>Pre-Authorization Number <span class="req">*</span></label>
+    <div style="display:flex;gap:8px"><input type="text" id="preauth-no" placeholder="e.g. PA-2026-4471" style="flex:1"><button class="btn btn-outline" onclick="verifyPreauth()">Verify</button></div>
+    <div class="hint">Type a pre-auth number (e.g. PA-2026-4471) and click Verify — simulates the TPA API call.</div>
+    <div style="margin-top:14px"><button class="btn btn-light" onclick="billGo(2)">← Back</button> <button class="btn btn-primary" id="btn-pa-next" disabled onclick="billGo(4)">Continue →</button></div>
+  </div>
+  <div class="card" id="bill-step-4" style="display:none">
+    <h4 style="font-size:13.5px;margin-bottom:12px">Add services <small style="color:var(--text-muted);font-weight:400">— contracted rates auto-applied from pricing group STAR-2026-A</small></h4>
+    <table>
+      <tr><th></th><th>Service</th><th>Standard Rate</th><th>Contracted Rate</th><th>Coverage</th></tr>
+      <tr><td><input type="checkbox" class="svc" data-amt="800" data-cov="1" checked></td><td>General Medicine Consultation</td><td style="text-decoration:line-through;color:var(--text-muted)">₹1,000</td><td><b>₹800</b></td><td><span class="chip ok">Covered</span></td></tr>
+      <tr><td><input type="checkbox" class="svc" data-amt="2400" data-cov="1" checked></td><td>CBC + Lipid Profile</td><td style="text-decoration:line-through;color:var(--text-muted)">₹3,000</td><td><b>₹2,400</b></td><td><span class="chip ok">Covered</span></td></tr>
+      <tr><td><input type="checkbox" class="svc" data-amt="5500" data-cov="1"></td><td>Ultrasound Abdomen</td><td style="text-decoration:line-through;color:var(--text-muted)">₹6,500</td><td><b>₹5,500</b></td><td><span class="chip ok">Covered</span></td></tr>
+      <tr><td><input type="checkbox" class="svc" data-amt="1500" data-cov="0"></td><td style="color:var(--danger)">Vitamin D Supplements (pharmacy)</td><td>₹1,500</td><td>₹1,500</td><td><span class="chip bad">Not covered — patient pays</span></td></tr>
+    </table>
+    <div style="margin-top:14px"><button class="btn btn-light" onclick="billGo(3)">← Back</button> <button class="btn btn-primary" onclick="computeSplit();billGo(5)">Review Split Bill →</button></div>
+  </div>
+  <div class="card" id="bill-step-5" style="display:none">
+    <h4 style="font-size:13.5px;margin-bottom:12px">Split bill — auto-calculated</h4>
+    <div class="grid c2">
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px"><b style="color:var(--primary)">🏢 Insurer pays (Star Health)</b><div id="split-ins" style="margin-top:8px"></div></div>
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px"><b style="color:var(--danger)">👤 Patient pays</b><div id="split-pat" style="margin-top:8px"></div></div>
+    </div>
+    <div class="alert info" style="margin-top:14px"><b>ℹ</b><div>Coverage limit check passed — total within pre-auth approved amount (₹80,000) and available sum insured (₹3,80,000).</div></div>
+    <div><button class="btn btn-light" onclick="billGo(4)">← Back</button> <button class="btn btn-success" onclick="finishBilling()">Generate Bill &amp; Claim →</button></div>
+  </div>
+  <div class="card" id="bill-step-6" style="display:none;text-align:center;padding:36px">
+    <div style="font-size:38px">✅</div>
+    <h3 style="margin:10px 0 6px">Bill generated &amp; claim packaged</h3>
+    <p style="color:var(--text-muted);max-width:540px;margin:0 auto 14px" id="bill-done-msg"></p>
+    <button class="btn btn-primary" onclick="billGo(1)">Start New Encounter</button>
+    <button class="btn btn-light" onclick="showPage('payerrec')">View in Payer Receivables</button>
+  </div>
+</section>
+
+<!-- ============ ENHANCEMENT: PRE-AUTH ============ -->
+<section class="page" id="page-preauth">
+  <div class="page-head"><h2 style="font-size:16px">Pre-Authorization Tracker <span class="chip ok">Proposed</span></h2>
+    <button class="btn btn-primary" onclick="openPreauthModal()">+ New Pre-Auth Request</button></div>
+  <div class="card">
+    <div class="toolbar"><input type="text" class="search-input" placeholder="Search…" oninput="renderPreauth(this.value)"><div class="spacer"></div><button class="btn btn-light" onclick="exportCSV(DB.preauths,'preauths.csv')">⤓ Export CSV</button></div>
+    <div class="tbl-wrap"><table id="tbl-preauth"></table></div>
+  </div>
+</section>
+
+<!-- ============ ENHANCEMENT: BULK PRICING ============ -->
+<section class="page" id="page-pricing">
+  <div class="page-head"><h2 style="font-size:16px">Bulk Service Pricing Upload <span class="chip ok">Proposed</span></h2>
+    <button class="btn btn-outline" onclick="downloadTemplate()">⤓ Download Template</button></div>
+  <div class="card">
+    <div class="upload-zone" id="upzone" onclick="simulateUpload()">
+      <div style="font-size:28px">⇪</div>
+      <b>Click to upload pricing file (.xlsx / .csv)</b>
+      <div style="font-size:11px;margin-top:4px">Simulates validating a 1,240-row Star Health 2026 rate file</div>
+    </div>
+    <div id="upresult" style="display:none">
+      <h4 style="font-size:13.5px;margin:4px 0 12px">Validation summary — STAR-2026-rates.xlsx</h4>
+      <div class="grid c4">
+        <div class="card kpi" style="margin:0"><div><div class="lbl">Total rows</div><div class="num">1,240</div></div></div>
+        <div class="card kpi" style="margin:0"><div><div class="lbl">Valid</div><div class="num" style="color:var(--success)">1,206</div></div></div>
+        <div class="card kpi" style="margin:0"><div><div class="lbl">Warnings</div><div class="num" style="color:#c98f2e">22</div></div></div>
+        <div class="card kpi" style="margin:0"><div><div class="lbl">Errors</div><div class="num" style="color:var(--danger)">12</div></div></div>
       </div>
-      <div id="drawerBody"></div>
-    </aside>
+      <div class="alert danger" style="margin-top:14px"><b>✕</b><div>12 service codes not found in service master (e.g. LAB-XR-2210, OT-554). <a href="#" onclick="downloadErrors();return false" style="color:inherit;font-weight:600">Download error report</a> or proceed with valid rows only.</div></div>
+      <div class="alert warn"><b>⚠</b><div>22 duplicate rows (same service + pricing group + effective date) — latest row will be used.</div></div>
+      <div class="alert info"><b>ℹ</b><div>Upload value exceeds ₹10L threshold → requires Finance Manager approval before rates activate.</div></div>
+      <button class="btn btn-primary" onclick="toast('1,206 rates queued. Approval request sent to Finance Manager. Rates apply to bills on/after effective date.');document.getElementById('upresult').style.display='none';document.getElementById('upzone').style.display='block'">Proceed with 1,206 valid rows</button>
+      <button class="btn btn-light" onclick="document.getElementById('upresult').style.display='none';document.getElementById('upzone').style.display='block'">Abort &amp; fix file</button>
+    </div>
+  </div>
+</section>
 
-    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+</div><!-- /main -->
 
-    <script src="./app.js"></script>
-  </body>
+<!-- ============ MODALS ============ -->
+<div class="modal-bg" id="modal-generic">
+  <div class="modal" id="modal-generic-box">
+    <div class="modal-h"><h4 id="gm-title"></h4><button class="modal-x" onclick="closeModal('modal-generic')">×</button></div>
+    <div class="modal-b" id="gm-body"></div>
+    <div class="modal-f" id="gm-foot"></div>
+  </div>
+</div>
+
+<div id="toastbox" style="position:fixed;bottom:24px;right:24px;z-index:300;display:none;background:#343a40;color:#fff;padding:12px 18px;border-radius:6px;font-size:12.5px;max-width:400px;box-shadow:0 6px 20px rgba(0,0,0,.3)"></div>
+
+<div class="tour-bg" id="tour-bg"></div>
+<div class="tour-card center" id="tour-card" style="display:none">
+  <div class="tour-step-num" id="tour-num"></div>
+  <h3 id="tour-title"></h3>
+  <div id="tour-body"></div>
+  <div class="tour-foot">
+    <button class="btn btn-light" id="tour-skip">Skip tour</button>
+    <div class="tour-dots" id="tour-dots"></div>
+    <button class="btn btn-primary" id="tour-next">Next →</button>
+  </div>
+</div>
+
+<script>
+/* ================= IN-MEMORY DATABASE ================= */
+const today = new Date('2026-06-03');
+const DB = {
+  schemes: [
+    {createdAt:'2025-11-12',name:'CGHS Delhi',site:'Main Hospital',description:'Central Government Health Scheme beneficiaries'},
+    {createdAt:'2025-12-02',name:'PM-JAY Package 2026',site:'',description:'Ayushman Bharat fixed package rates'},
+    {createdAt:'2026-01-18',name:'ECHS',site:'Main Hospital',description:'Ex-Servicemen Contributory Health Scheme'},
+    {createdAt:'2026-02-25',name:'Corporate Wellness TCS',site:'City Clinic',description:'TCS employer-sponsored plan'},
+  ],
+  excluded: [
+    {createdAt:'2025-10-05',name:'ABC MicroInsure',site:'Main Hospital',description:'Repeated non-payment beyond 180 days'},
+    {createdAt:'2026-01-22',name:'Sunrise TPA Ltd',site:'',description:'Empanelment terminated by management'},
+  ],
+  groups: [
+    {name:'Star Health 2026 Rates',code:'STAR-2026-A',authorities:'For All Authority',description:'Negotiated rates effective Apr-2026'},
+    {name:'HDFC Corporate B',code:'HDFC-CORP-B',authorities:'Main Hospital',description:'Corporate contract schedule'},
+    {name:'NHA Package 2026',code:'NHA-PKG-2026',authorities:'For All Authority',description:'Govt scheme package rates'},
+    {name:'Standard Rates',code:'STD',authorities:'For All Authority',description:'Hospital rack rates'},
+  ],
+  contracts: [
+    {name:'Star Health Insurance',pricingGroup:'Star Health 2026 Rates (STAR-2026-A)',type:'TPA',mode:'Email',frequency:'MONTHLY',dischargeSummaryFormat:'Standard',claimFormat:'Form-C',authorities:'For All Authority',emailOrLink:'claims@starhealth.in',intimationOfAdmission:1,tat:'30',attendingQuery:'7',enhancementRequest:'2',adjudication:'15',queryForNmi:'5',hospitalFollowUp:'MONTHLY',startDate:'2026-04-01',endDate:'2027-03-31',approvalAmountLimit:500000,servicesDiscount:20},
+    {name:'HDFC Ergo',pricingGroup:'HDFC Corporate B (HDFC-CORP-B)',type:'CORPORATE',mode:'Web Scraping',frequency:'MONTHLY',dischargeSummaryFormat:'Standard',claimFormat:'Digital',authorities:'Main Hospital',emailOrLink:'portal.hdfcergo.com',intimationOfAdmission:1,tat:'21',attendingQuery:'5',enhancementRequest:'1',adjudication:'10',queryForNmi:'3',hospitalFollowUp:'Claim wise (Discharge)',startDate:'2026-01-01',endDate:'2026-12-31',approvalAmountLimit:300000,servicesDiscount:15},
+    {name:'Ayushman Bharat (PM-JAY)',pricingGroup:'NHA Package 2026 (NHA-PKG-2026)',type:'TRUST',mode:'Excel',frequency:'QUARTERLY',dischargeSummaryFormat:'NHA Format',claimFormat:'TMS',authorities:'For All Authority',emailOrLink:'tms.pmjay.gov.in',intimationOfAdmission:1,tat:'45',attendingQuery:'10',enhancementRequest:'3',adjudication:'30',queryForNmi:'7',hospitalFollowUp:'QUARTERLY',startDate:'2026-04-01',endDate:'2027-03-31',approvalAmountLimit:200000,servicesDiscount:0},
+    {name:'ICICI Lombard',pricingGroup:'Standard Rates (STD)',type:'TPA',mode:'PDF',frequency:'MONTHLY',dischargeSummaryFormat:'Standard',claimFormat:'Form-C',authorities:'City Clinic',emailOrLink:'claims@icicilombard.com',intimationOfAdmission:2,tat:'30',attendingQuery:'7',enhancementRequest:'2',adjudication:'20',queryForNmi:'5',hospitalFollowUp:'MONTHLY',startDate:'2025-06-16',endDate:'2026-06-15',approvalAmountLimit:400000,servicesDiscount:18},
+    {name:'MediAssist TPA',pricingGroup:'Standard Rates (STD)',type:'TPA',mode:'Email',frequency:'MONTHLY',dischargeSummaryFormat:'Standard',claimFormat:'Form-C',authorities:'For All Authority',emailOrLink:'claims@mediassist.in',intimationOfAdmission:1,tat:'25',attendingQuery:'6',enhancementRequest:'2',adjudication:'12',queryForNmi:'4',hospitalFollowUp:'MONTHLY',startDate:'2026-02-01',endDate:'2027-01-31',approvalAmountLimit:350000,servicesDiscount:12},
+  ],
+  receivables: [
+    {payerName:'Star Health Insurance',tpa:'MediAssist',schemeName:'Corporate Wellness TCS',site:'Main Hospital',billDate:'2026-05-28',billNumber:'INV-10218',patientName:'Ravi Kumar',uhid:'TLO-2024-08812',ipNumber:'IP-3321',dateOfAdmission:'2026-05-25',dateOfDischarge:'2026-05-28',payerGrossAmount:84000,preAuthorizationCode:'PA-2026-4471',preAuthorizationAmount:80000,claimId:'CLM-88121',policyNumber:'SH-99812-FHO',idCardNumber:'M-4471',dateOfDispatch:'2026-05-30',proofOfDeliveryNumber:'POD-5521',dateOfSubmission:'2026-05-30',billType:'IP',claimAmount:78500,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:78500,adjustmentRemarks:'',status:'OUTSTANDING',financeRemarks:'',dateOfAudit:'2026-05-29',specialityName:'General Medicine',contractType:'tpa'},
+    {payerName:'Star Health Insurance',tpa:'MediAssist',schemeName:'Corporate Wellness TCS',site:'Main Hospital',billDate:'2026-04-12',billNumber:'INV-10102',patientName:'Lakshmi N',uhid:'TLO-2023-04471',ipNumber:'IP-3188',dateOfAdmission:'2026-04-08',dateOfDischarge:'2026-04-12',payerGrossAmount:152000,preAuthorizationCode:'PA-2026-4298',preAuthorizationAmount:140000,claimId:'CLM-87410',policyNumber:'SH-77123-FHO',idCardNumber:'M-3318',dateOfDispatch:'2026-04-15',proofOfDeliveryNumber:'POD-5390',dateOfSubmission:'2026-04-15',billType:'IP',claimAmount:138200,dateOfPayment:'2026-05-20',modeOfPayment:'NEFT',paymentReference:'NEFT-99812',amountReceived:121000,tds:2764,adjustedAmount:0,finalOutstanding:14436,adjustmentRemarks:'Room rent cap deduction',status:'SHORT',financeRemarks:'Follow up for balance',dateOfAudit:'2026-04-14',specialityName:'Orthopaedics',contractType:'tpa'},
+    {payerName:'HDFC Ergo',tpa:'',schemeName:'Corporate Wellness TCS',site:'Main Hospital',billDate:'2026-05-02',billNumber:'INV-10150',patientName:'Meena Joshi',uhid:'TLO-2022-01984',ipNumber:'IP-3240',dateOfAdmission:'2026-04-29',dateOfDischarge:'2026-05-02',payerGrossAmount:96000,preAuthorizationCode:'PA-2026-4502',preAuthorizationAmount:90000,claimId:'CLM-87922',policyNumber:'HE-55321',idCardNumber:'HE-9921',dateOfDispatch:'2026-05-05',proofOfDeliveryNumber:'POD-5444',dateOfSubmission:'2026-05-05',billType:'IP',claimAmount:91400,dateOfPayment:'2026-05-29',modeOfPayment:'NEFT',paymentReference:'NEFT-10221',amountReceived:91400,tds:1828,adjustedAmount:0,finalOutstanding:0,adjustmentRemarks:'',status:'SETTLED',financeRemarks:'',dateOfAudit:'2026-05-04',specialityName:'Cardiology',contractType:'corporate'},
+    {payerName:'Ayushman Bharat (PM-JAY)',tpa:'',schemeName:'PM-JAY Package 2026',site:'Main Hospital',billDate:'2026-03-18',billNumber:'INV-09877',patientName:'Arif Shaikh',uhid:'TLO-2025-11023',ipNumber:'IP-3014',dateOfAdmission:'2026-03-14',dateOfDischarge:'2026-03-18',payerGrossAmount:45000,preAuthorizationCode:'TMS-88123',preAuthorizationAmount:45000,claimId:'CLM-86701',policyNumber:'PMJAY-XX-2210',idCardNumber:'AB-77821',dateOfDispatch:'2026-03-21',proofOfDeliveryNumber:'POD-5102',dateOfSubmission:'2026-03-21',billType:'IP',claimAmount:45000,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:45000,adjustmentRemarks:'',status:'OUTSTANDING',financeRemarks:'TMS query pending',dateOfAudit:'2026-03-20',specialityName:'General Surgery',contractType:'trust'},
+    {payerName:'ICICI Lombard',tpa:'Vidal Health',schemeName:'CGHS Delhi',site:'City Clinic',billDate:'2026-01-22',billNumber:'INV-09455',patientName:'Suresh Patil',uhid:'TLO-2021-00871',ipNumber:'IP-2890',dateOfAdmission:'2026-01-18',dateOfDischarge:'2026-01-22',payerGrossAmount:210000,preAuthorizationCode:'PA-2026-4102',preAuthorizationAmount:180000,claimId:'CLM-85510',policyNumber:'IL-33210',idCardNumber:'VH-4471',dateOfDispatch:'2026-01-26',proofOfDeliveryNumber:'POD-4921',dateOfSubmission:'2026-01-26',billType:'IP',claimAmount:182300,dateOfPayment:'2026-03-10',modeOfPayment:'RTGS',paymentReference:'RTGS-55211',amountReceived:158000,tds:3646,adjustedAmount:8000,finalOutstanding:12654,adjustmentRemarks:'Non-payables deducted',status:'SETTLED SHORT',financeRemarks:'Reconciled Mar-26',dateOfAudit:'2026-01-25',specialityName:'Neurology',contractType:'tpa'},
+    {payerName:'ICICI Lombard',tpa:'Vidal Health',schemeName:'CGHS Delhi',site:'City Clinic',billDate:'2025-11-09',billNumber:'INV-08912',patientName:'Fatima Begum',uhid:'TLO-2020-00233',ipNumber:'IP-2641',dateOfAdmission:'2025-11-04',dateOfDischarge:'2025-11-09',payerGrossAmount:67000,preAuthorizationCode:'PA-2025-3911',preAuthorizationAmount:60000,claimId:'CLM-83110',policyNumber:'IL-29981',idCardNumber:'VH-3120',dateOfDispatch:'2025-11-13',proofOfDeliveryNumber:'POD-4500',dateOfSubmission:'2025-11-13',billType:'IP',claimAmount:61500,dateOfPayment:'2026-01-08',modeOfPayment:'NEFT',paymentReference:'NEFT-77231',amountReceived:63000,tds:1230,adjustedAmount:0,finalOutstanding:-1500,adjustmentRemarks:'Excess receipt — refund due',status:'EXCESS',financeRemarks:'',dateOfAudit:'2025-11-12',specialityName:'Oncology',contractType:'tpa'},
+    {payerName:'MediAssist TPA',tpa:'MediAssist',schemeName:'ECHS',site:'Main Hospital',billDate:'2026-02-14',billNumber:'INV-09640',patientName:'Col. R Singh (Retd)',uhid:'TLO-2019-00112',ipNumber:'IP-2955',dateOfAdmission:'2026-02-10',dateOfDischarge:'2026-02-14',payerGrossAmount:124000,preAuthorizationCode:'PA-2026-4210',preAuthorizationAmount:110000,claimId:'CLM-86012',policyNumber:'ECHS-90217',idCardNumber:'EC-2210',dateOfDispatch:'2026-02-18',proofOfDeliveryNumber:'POD-5010',dateOfSubmission:'2026-02-18',billType:'IP',claimAmount:112800,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:112800,adjustmentRemarks:'',status:'OUTSTANDING',financeRemarks:'90+ days — escalated',dateOfAudit:'2026-02-17',specialityName:'Cardiology',contractType:'tpa'},
+    {payerName:'MediAssist TPA',tpa:'MediAssist',schemeName:'ECHS',site:'Main Hospital',billDate:'2026-05-21',billNumber:'INV-10199',patientName:'Devika Rao',uhid:'TLO-2024-07221',ipNumber:'',dateOfAdmission:'',dateOfDischarge:'',payerGrossAmount:5200,preAuthorizationCode:'',preAuthorizationAmount:0,claimId:'CLM-88090',policyNumber:'ECHS-88110',idCardNumber:'EC-1980',dateOfDispatch:'2026-05-23',proofOfDeliveryNumber:'POD-5501',dateOfSubmission:'2026-05-23',billType:'OP',claimAmount:4800,dateOfPayment:'2026-06-01',modeOfPayment:'NEFT',paymentReference:'NEFT-11220',amountReceived:4800,tds:96,adjustedAmount:0,finalOutstanding:0,adjustmentRemarks:'',status:'SETTLED',financeRemarks:'',dateOfAudit:'2026-05-22',specialityName:'General Medicine',contractType:'tpa'},
+    {payerName:'HDFC Ergo',tpa:'',schemeName:'Corporate Wellness TCS',site:'City Clinic',billDate:'2026-05-21',billNumber:'INV-10199',patientName:'Devika Rao',uhid:'TLO-2024-07221',ipNumber:'',dateOfAdmission:'',dateOfDischarge:'',payerGrossAmount:5200,preAuthorizationCode:'',preAuthorizationAmount:0,claimId:'CLM-88091',policyNumber:'HE-51299',idCardNumber:'HE-7710',dateOfDispatch:'',proofOfDeliveryNumber:'',dateOfSubmission:'',billType:'OP',claimAmount:4800,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:4800,adjustmentRemarks:'',status:'OUTSTANDING',financeRemarks:'Duplicate bill — verify',dateOfAudit:'',specialityName:'General Medicine',contractType:'corporate'},
+    {payerName:'Star Health Insurance',tpa:'MediAssist',schemeName:'Corporate Wellness TCS',site:'Main Hospital',billDate:'2025-12-15',billNumber:'INV-09120',patientName:'Gopal Verma',uhid:'TLO-2018-00098',ipNumber:'IP-2710',dateOfAdmission:'2025-12-10',dateOfDischarge:'2025-12-15',payerGrossAmount:39000,preAuthorizationCode:'PA-2025-3850',preAuthorizationAmount:35000,claimId:'CLM-84001',policyNumber:'SH-61012-FHO',idCardNumber:'M-2901',dateOfDispatch:'2025-12-18',proofOfDeliveryNumber:'POD-4688',dateOfSubmission:'2025-12-18',billType:'IP',claimAmount:36400,dateOfPayment:'2026-02-02',modeOfPayment:'NEFT',paymentReference:'NEFT-80012',amountReceived:36400,tds:728,adjustedAmount:0,finalOutstanding:0,adjustmentRemarks:'',status:'SETTLED',financeRemarks:'',dateOfAudit:'2025-12-17',specialityName:'Oncology',contractType:'tpa'},
+    {payerName:'Ayushman Bharat (PM-JAY)',tpa:'',schemeName:'PM-JAY Package 2026',site:'City Clinic',billDate:'2026-05-30',billNumber:'INV-10230',patientName:'Kamla Devi',uhid:'TLO-2026-00341',ipNumber:'IP-3340',dateOfAdmission:'2026-05-27',dateOfDischarge:'2026-05-30',payerGrossAmount:25000,preAuthorizationCode:'TMS-89001',preAuthorizationAmount:25000,claimId:'CLM-88160',policyNumber:'PMJAY-XX-3471',idCardNumber:'AB-81022',dateOfDispatch:'',proofOfDeliveryNumber:'',dateOfSubmission:'',billType:'IP',claimAmount:25000,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:25000,adjustmentRemarks:'',status:'OUTSTANDING',financeRemarks:'',dateOfAudit:'',specialityName:'Obstetrics',contractType:'trust'},
+    {payerName:'HDFC Ergo',tpa:'',schemeName:'Corporate Wellness TCS',site:'Main Hospital',billDate:'2025-09-28',billNumber:'INV-08560',patientName:'Nikhil Bhat',uhid:'TLO-2022-03110',ipNumber:'IP-2502',dateOfAdmission:'2025-09-24',dateOfDischarge:'2025-09-28',payerGrossAmount:18800,preAuthorizationCode:'PA-2025-3719',preAuthorizationAmount:18000,claimId:'CLM-82010',policyNumber:'HE-44102',idCardNumber:'HE-5521',dateOfDispatch:'2025-10-01',proofOfDeliveryNumber:'POD-4301',dateOfSubmission:'2025-10-01',billType:'IP',claimAmount:17900,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:17900,adjustmentRemarks:'',status:'ONCO NON CLAIMABLE',financeRemarks:'Policy exclusion — write-off review',dateOfAudit:'2025-09-30',specialityName:'Oncology',contractType:'corporate'},
+  ],
+  insurers: [
+    {name:'Star Health Insurance',code:'STAR01',type:'Cashless',pricingGroup:'STAR-2026-A',tpaName:'MediAssist',contractEnd:'2027-03-31',preAuth:'Required',status:'Active'},
+    {name:'HDFC Ergo',code:'HDFC02',type:'Cashless',pricingGroup:'HDFC-CORP-B',tpaName:'',contractEnd:'2026-12-31',preAuth:'Required',status:'Active'},
+    {name:'Ayushman Bharat (PM-JAY)',code:'PMJAY',type:'Government Scheme',pricingGroup:'NHA-PKG-2026',tpaName:'',contractEnd:'2027-03-31',preAuth:'Required',status:'Active'},
+    {name:'ICICI Lombard',code:'ICICI1',type:'Cashless',pricingGroup:'STD',tpaName:'Vidal Health',contractEnd:'2026-06-15',preAuth:'Required',status:'Expiring'},
+    {name:'TCS Corporate Plan',code:'TCSCRP',type:'Corporate',pricingGroup:'TCS-2026',tpaName:'MediAssist',contractEnd:'2026-12-31',preAuth:'Not required',status:'Active'},
+    {name:'New India Assurance',code:'NIA001',type:'Reimbursement',pricingGroup:'STD',tpaName:'',contractEnd:'2025-09-30',preAuth:'Not required',status:'Expired'},
+  ],
+  policies: [
+    {priority:'PRIMARY',insurer:'Star Health — Family Health Optima',policyNo:'SH-99812-FHO',memberId:'M-4471',holder:'Self',holderName:'',validTill:'2027-03-31',sumInsured:500000,used:120000,copay:0,verify:'Verified via API',docs:2},
+    {priority:'SECONDARY',insurer:'TCS Corporate Plan',policyNo:'TCS-GRP-2026',memberId:'TC-8821',holder:'Spouse',holderName:'Priya Kumar',validTill:'2026-12-31',sumInsured:300000,used:0,copay:10,verify:'Manual verification',docs:1},
+  ],
+  preauths: [
+    {no:'PA-2026-4471',patient:'Ravi Kumar',insurer:'Star Health / MediAssist',requested:'2026-06-01',approved:80000,validTill:'2026-06-10',status:'Approved'},
+    {no:'PA-2026-4502',patient:'Meena Joshi',insurer:'HDFC Ergo',requested:'2026-06-02',approved:0,validTill:'',status:'Awaiting TPA'},
+    {no:'PA-2026-4385',patient:'Arif Shaikh',insurer:'ICICI / Vidal Health',requested:'2026-05-22',approved:45000,validTill:'2026-06-04',status:'Expiring'},
+    {no:'PA-2026-4298',patient:'Lakshmi N',insurer:'Star Health / MediAssist',requested:'2026-05-18',approved:0,validTill:'',status:'Rejected — NMI query'},
+  ],
+};
+let editIdx = null;
+
+/* ================= HELPERS ================= */
+const $=id=>document.getElementById(id);
+const inr=n=>'₹'+(+n||0).toLocaleString('en-IN');
+const fmtD=d=>{if(!d)return '-';const x=new Date(d);return String(x.getDate()).padStart(2,'0')+'/'+String(x.getMonth()+1).padStart(2,'0')+'/'+x.getFullYear()};
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const out=r=>(+r.claimAmount||0)-(+r.amountReceived||0)-(+r.adjustedAmount||0);
+const ageDays=r=>Math.max(0,Math.round((today-new Date(r.billDate))/86400000));
+let toastT;
+function toast(msg){const t=$('toastbox');t.textContent=msg;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',4500)}
+function statusChip(s){const m={'SETTLED':'ok','SHORT':'warn','SETTLED SHORT':'warn','EXCESS':'info','ONCO NON CLAIMABLE':'bad','OUTSTANDING':'muted','Active':'ok','Expiring':'warn','Expired':'bad','Approved':'ok','Awaiting TPA':'warn'};const c=m[s]||(String(s).startsWith('Rejected')?'bad':'muted');return `<span class="chip ${c}">${esc(s||'-')}</span>`}
+function exportCSV(arr,fname){
+  if(!arr.length){toast('Nothing to export');return}
+  const keys=Object.keys(arr[0]);
+  const csv=[keys.join(',')].concat(arr.map(r=>keys.map(k=>`"${String(r[k]==null?'':r[k]).replace(/"/g,'""')}"`).join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fname;a.click();
+  toast('Exported '+fname);
+}
+function sortBy(arr,key,asc){return [...arr].sort((a,b)=>{const x=a[key],y=b[key];return (x>y?1:x<y?-1:0)*(asc?1:-1)})}
+const sortState={};
+function thSort(tbl,key,renderFn){const s=sortState[tbl]=sortState[tbl]||{};s.key===key?s.asc=!s.asc:(s.key=key,s.asc=true);renderFn()}
+
+/* ================= NAVIGATION ================= */
+const pageRenderers={dashboard:renderDashboard,schemes:()=>renderSchemes(),excluded:()=>renderExcluded(),contracts:()=>renderContracts(),groups:()=>renderGroups(),recform:()=>fillRecFormSelects(),billingview:()=>renderRecTable('billingview'),auditview:()=>renderRecTable('auditview'),payerrec:()=>renderRecTable('payerrec'),outstanding:()=>renderOutstanding(),payerreport:renderPayerReport,balsnap:renderBalSnap,dupbills:renderDupBills,ageing:renderAgeing,dwmqy:renderDwmqy,debtage:renderDebtAge,tatdash:renderTatDash,debtsum:renderDebtSum,master:()=>renderMaster(),patient:renderPolicies,billing:renderBillPolicyOptions,preauth:()=>renderPreauth(),pricing:()=>{}};
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
+  (pageRenderers[id]||(()=>{}))();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.addEventListener('click',()=>showPage(n.dataset.page)));
+$('global-search').addEventListener('input',function(){
+  const active=document.querySelector('.page.active');if(!active)return;
+  const box=active.querySelector('.search-input');if(box){box.value=this.value;box.dispatchEvent(new Event('input'))}
+});
+
+/* ================= GENERIC MODAL ================= */
+function openModal(id){$(id).classList.add('open')}
+function closeModal(id){$(id).classList.remove('open')}
+function genericModal(title,bodyHTML,buttons,wide){
+  $('gm-title').textContent=title;$('gm-body').innerHTML=bodyHTML;
+  $('modal-generic-box').classList.toggle('wide',!!wide);
+  $('gm-foot').innerHTML='';
+  buttons.forEach(b=>{const btn=document.createElement('button');btn.className='btn '+b.cls;btn.textContent=b.label;btn.onclick=b.fn;$('gm-foot').appendChild(btn)});
+  openModal('modal-generic');
+}
+const fld=(id,label,type,req,extra)=>`<div><label>${label} ${req?'<span class="req">*</span>':''}</label>${type==='select'?`<select id="${id}">${extra}</select>`:type==='textarea'?`<textarea id="${id}" rows="3"></textarea>`:`<input type="${type}" id="${id}" ${extra||''}>`}</div>`;
+const authOpts='<option value="">— Select —</option><option>For All Authority</option><option>Main Hospital</option><option>City Clinic</option>';
+
+/* ================= SCHEMES ================= */
+function renderSchemes(q=''){
+  let data=DB.schemes.filter(s=>!$('schemes-auth').value||s.site===$('schemes-auth').value||(!s.site&&!$('schemes-auth').value));
+  if($('schemes-auth').value)data=DB.schemes.filter(s=>s.site===$('schemes-auth').value);
+  if(q)data=data.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase()));
+  const s=sortState['schemes']; if(s&&s.key)data=sortBy(data,s.key,s.asc);
+  $('tbl-schemes').innerHTML=`<tr><th>#</th><th onclick="thSort('schemes','createdAt',()=>renderSchemes())">Created At ⇅</th><th onclick="thSort('schemes','name',()=>renderSchemes())">Name ⇅</th><th>Site</th><th>Description</th><th>Actions</th></tr>`+
+    data.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtD(r.createdAt)}</td><td><b>${esc(r.name)}</b></td><td>${esc(r.site)||'-'}</td><td>${esc(r.description)}</td><td><button class="btn btn-light btn-sm" onclick="openSchemeModal(${DB.schemes.indexOf(r)})">✎ Edit</button></td></tr>`).join('')||emptyRow(6);
+}
+function openSchemeModal(idx){
+  const r=idx!=null?DB.schemes[idx]:{};
+  genericModal(idx!=null?'Edit Scheme':'Add Scheme',
+    `<div class="form-grid c2">${fld('m-name','Scheme Name','text',1,'placeholder="Scheme Name*"')}${fld('m-site','Assigning Authority','select',0,'<option value="">— All —</option><option>Main Hospital</option><option>City Clinic</option>')}</div>${fld('m-desc','Description','textarea')}`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Save Scheme',cls:'btn-primary',fn:()=>{
+       const name=$('m-name').value.trim();if(!name){toast('Scheme Name is required');return}
+       const rec={createdAt:r.createdAt||today.toISOString().slice(0,10),name,site:$('m-site').value,description:$('m-desc').value};
+       idx!=null?DB.schemes[idx]=rec:DB.schemes.push(rec);
+       closeModal('modal-generic');renderSchemes();toast('Scheme saved. Audit log entry created.');}}]);
+  setTimeout(()=>{if(idx!=null){$('m-name').value=r.name;$('m-site').value=r.site||'';$('m-desc').value=r.description}},0);
+}
+
+/* ================= EXCLUDED PAYORS ================= */
+function renderExcluded(q=''){
+  let data=DB.excluded;
+  if(q)data=data.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase()));
+  $('tbl-excluded').innerHTML=`<tr><th>#</th><th>Created At</th><th>Name</th><th>Site</th><th>Description/Remarks</th><th>Actions</th></tr>`+
+    data.map((r,i)=>`<tr><td>${i+1}</td><td>${fmtD(r.createdAt)}</td><td><b>${esc(r.name)}</b></td><td>${esc(r.site)||'-'}</td><td>${esc(r.description)}</td>
+    <td><button class="btn btn-light btn-sm" onclick="openExcludedModal(${DB.excluded.indexOf(r)})">✎ Edit</button> <button class="btn btn-danger btn-sm" onclick="if(confirm('Remove ${esc(r.name)} from exclusion list?')){DB.excluded.splice(${DB.excluded.indexOf(r)},1);renderExcluded();toast('Payor removed from exclusion list.')}">🗑 Delete</button></td></tr>`).join('')||emptyRow(6);
+}
+function openExcludedModal(idx){
+  const r=idx!=null?DB.excluded[idx]:{};
+  genericModal(idx!=null?'Edit Excluded Payor':'Exclude Payor',
+    `<div class="form-grid c2">${fld('m-name','Payor Name','text',1)}${fld('m-site','Assigning Authority','select',0,'<option value="">— All —</option><option>Main Hospital</option><option>City Clinic</option>')}</div>${fld('m-desc','Description / Remarks','textarea')}`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Save',cls:'btn-primary',fn:()=>{
+       const name=$('m-name').value.trim();if(!name){toast('Payor Name is required');return}
+       const rec={createdAt:r.createdAt||today.toISOString().slice(0,10),name,site:$('m-site').value,description:$('m-desc').value};
+       idx!=null?DB.excluded[idx]=rec:DB.excluded.push(rec);
+       closeModal('modal-generic');renderExcluded();toast('Excluded payor saved.');}}]);
+  setTimeout(()=>{if(idx!=null){$('m-name').value=r.name;$('m-site').value=r.site||'';$('m-desc').value=r.description}},0);
+}
+
+/* ================= CONTRACTS ================= */
+function renderContracts(q=''){
+  let data=DB.contracts;
+  if(q)data=data.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase()));
+  $('tbl-contracts').innerHTML=`<tr><th>#</th><th></th><th>Name</th><th>Pricing Group</th><th>Type</th><th>Mode</th><th>Frequency</th><th>Discharge Summary Format</th><th>Claim Format</th><th>Authorities</th><th>Email or Link</th><th>Intimation of Admission</th><th>TAT</th><th>Attending query (if any)</th><th>Enhancement Request</th><th>Adjudication</th><th>Query for NMI</th><th>Hospital Follow Up</th><th>Start</th><th>End</th></tr>`+
+    data.map((r,i)=>{
+      const expSoon=new Date(r.endDate)<new Date(today.getTime()+30*86400000);
+      return `<tr><td>${i+1}</td>
+      <td><button class="btn btn-light btn-sm" onclick="openContractModal(${DB.contracts.indexOf(r)})">✎</button>${r.type==='TRUST'?` <button class="btn btn-outline btn-sm" onclick="openDepositModal(${DB.contracts.indexOf(r)})">₹ Deposit</button>`:''}</td>
+      <td><b>${esc(r.name)}</b></td><td><span class="chip info">${esc(r.pricingGroup)}</span></td><td><span class="chip sec">${esc(r.type)}</span></td><td><span class="chip muted">${esc(r.mode)}</span></td><td><span class="chip muted">${esc(r.frequency)}</span></td>
+      <td><span class="chip muted">${esc(r.dischargeSummaryFormat)}</span></td><td>${esc(r.claimFormat)}</td>
+      <td>${r.authorities==='For All Authority'?'<span class="chip ok">For All Authority</span>':`<span class="chip sec">${esc(r.authorities)}</span>`}</td>
+      <td>${esc(r.emailOrLink)}</td><td>${r.intimationOfAdmission} d</td><td>${r.tat} d</td><td>${r.attendingQuery} d</td><td>${r.enhancementRequest} d</td><td>${r.adjudication} d</td><td>${r.queryForNmi} d</td><td>${esc(r.hospitalFollowUp)}</td>
+      <td>${fmtD(r.startDate)}</td><td style="${expSoon?'color:var(--danger);font-weight:600':''}">${fmtD(r.endDate)}</td></tr>`}).join('')||emptyRow(20);
+}
+function openContractModal(idx){
+  const r=idx!=null?DB.contracts[idx]:{};
+  genericModal(idx!=null?'Edit Contract':'Add Contract',
+   `<div class="form-grid">
+     ${fld('c-name','Payer Name','text',1)}
+     ${fld('c-mode','Mode','select',1,'<option>Email</option><option>Excel</option><option>PDF</option><option>Web Scraping</option>')}
+     ${fld('c-freq','Frequency','select',1,'<option>MONTHLY</option><option>QUARTERLY</option><option>YEARLY</option><option>CLOSED</option>')}
+     ${fld('c-email','Email/Link','text')}
+     ${fld('c-auth','Authorities','select',0,authOpts)}
+     ${fld('c-pg','Pricing Group','select',1,DB.groups.map(g=>`<option>${esc(g.name)} (${esc(g.code)})</option>`).join(''))}
+     ${fld('c-dsf','Discharge Summary Format','text')}
+     ${fld('c-cf','Claim format','text')}
+     ${fld('c-ioa','Intimation of Admission (days)','number',1)}
+     ${fld('c-tat','Turn Around Time (days)','number')}
+     ${fld('c-aq','Attending Query (days)','number')}
+     ${fld('c-er','Enhancement Request (days)','number',1)}
+     ${fld('c-adj','Adjudication (days)','number')}
+     ${fld('c-nmi','Query for NMI (days)','number')}
+     ${fld('c-hfu','Hospital Follow up','select',0,'<option>Claim wise (Discharge)</option><option>MONTHLY</option><option>QUARTERLY</option><option>YEARLY</option>')}
+     ${fld('c-aal','Approval Amount Limit','number')}
+     ${fld('c-sd','Start Date','date',1)}
+     ${fld('c-ed','End Date','date',1)}
+     ${fld('c-type','Contract Type','select',1,'<option>tpa</option><option>corporate</option><option>trust</option><option>partner</option>')}
+     ${fld('c-disc','Services Discount (%)','number')}
+   </div>`,
+   [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+    {label:'Save Contract',cls:'btn-primary',fn:()=>{
+      if(!$('c-name').value.trim()||!$('c-sd').value||!$('c-ed').value||!$('c-ioa').value||!$('c-er').value){toast('Fill all required fields (*)');return}
+      const rec={name:$('c-name').value.trim(),pricingGroup:$('c-pg').value,type:$('c-type').value.toUpperCase(),mode:$('c-mode').value,frequency:$('c-freq').value,dischargeSummaryFormat:$('c-dsf').value||'Standard',claimFormat:$('c-cf').value,authorities:$('c-auth').value||'For All Authority',emailOrLink:$('c-email').value,intimationOfAdmission:+$('c-ioa').value,tat:$('c-tat').value,attendingQuery:$('c-aq').value,enhancementRequest:$('c-er').value,adjudication:$('c-adj').value,queryForNmi:$('c-nmi').value,hospitalFollowUp:$('c-hfu').value,startDate:$('c-sd').value,endDate:$('c-ed').value,approvalAmountLimit:+$('c-aal').value,servicesDiscount:+$('c-disc').value};
+      idx!=null?DB.contracts[idx]=rec:DB.contracts.push(rec);
+      closeModal('modal-generic');renderContracts();fillRecFormSelects();toast('Contract saved with change log (user + timestamp).');}}],true);
+  setTimeout(()=>{if(idx!=null){$('c-name').value=r.name;$('c-mode').value=r.mode;$('c-freq').value=r.frequency;$('c-email').value=r.emailOrLink;$('c-auth').value=r.authorities;$('c-pg').value=r.pricingGroup;$('c-dsf').value=r.dischargeSummaryFormat;$('c-cf').value=r.claimFormat;$('c-ioa').value=r.intimationOfAdmission;$('c-tat').value=r.tat;$('c-aq').value=r.attendingQuery;$('c-er').value=r.enhancementRequest;$('c-adj').value=r.adjudication;$('c-nmi').value=r.queryForNmi;$('c-hfu').value=r.hospitalFollowUp;$('c-aal').value=r.approvalAmountLimit;$('c-sd').value=r.startDate;$('c-ed').value=r.endDate;$('c-type').value=r.type.toLowerCase();$('c-disc').value=r.servicesDiscount}},0);
+}
+function openDepositModal(idx){
+  const r=DB.contracts[idx];
+  genericModal('Deposit Amount — '+r.name,
+    `<div class="form-grid c2">${fld('d-amt','Deposit Amount','number',1)}${fld('d-date','Deposit Date','date',1)}</div><div class="hint">Trust-type contracts track deposited vs used limits.</div>`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Record Deposit',cls:'btn-primary',fn:()=>{if(!$('d-amt').value){toast('Enter amount');return}closeModal('modal-generic');toast('Deposit of '+inr($('d-amt').value)+' recorded for '+r.name)}}]);
+}
+
+/* ================= GROUPS ================= */
+function renderGroups(q=''){
+  let data=DB.groups;
+  if(q)data=data.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase()));
+  $('tbl-groups').innerHTML=`<tr><th>Name</th><th>Code</th><th>Authorities</th><th>Description</th><th>Actions</th></tr>`+
+    data.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td><span class="chip info">${esc(r.code)}</span></td>
+    <td>${r.authorities==='For All Authority'?'<span class="chip ok">For All Authority</span>':`<span class="chip sec">${esc(r.authorities)}</span>`}</td>
+    <td>${esc(r.description)}</td><td><button class="btn btn-light btn-sm" onclick="openGroupModal(${DB.groups.indexOf(r)})">✎ Edit</button></td></tr>`).join('')||emptyRow(5);
+}
+function openGroupModal(idx){
+  const r=idx!=null?DB.groups[idx]:{};
+  genericModal(idx!=null?'Edit Group':'Add Group',
+    `<div class="form-grid c2">${fld('m-name','Name','text',1)}${fld('m-code','Code','text',1)}${fld('m-auth','Authorities','select',0,authOpts)}</div>${fld('m-desc','Description','textarea')}`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Save Group',cls:'btn-primary',fn:()=>{
+       if(!$('m-name').value.trim()||!$('m-code').value.trim()){toast('Name and Code are required');return}
+       const rec={name:$('m-name').value.trim(),code:$('m-code').value.trim(),authorities:$('m-auth').value||'For All Authority',description:$('m-desc').value};
+       idx!=null?DB.groups[idx]=rec:DB.groups.push(rec);
+       closeModal('modal-generic');renderGroups();toast('Pricing group saved.');}}]);
+  setTimeout(()=>{if(idx!=null){$('m-name').value=r.name;$('m-code').value=r.code;$('m-auth').value=r.authorities;$('m-desc').value=r.description}},0);
+}
+
+/* ================= RECEIVABLE FORM ================= */
+const rfFields=['payerName','uhid','claimId','tpa','ipNumber','billNumber','schemeName','policyNumber','billDate','patientName','dateOfScrutiny','preAuthorizationCode','billType','age','bedCategory','department','preAuthorizationAmount','dateOfUpload','dateOfAdmission','idCardNumber','dateOfDispatch','dateOfDischarge','proofOfDeliveryNumber','payerGrossAmount','dateOfPayment','modeOfPayment','claimAmount','adjustedAmount','paymentReference','amountReceived','adjustmentRemarks','finalOutstanding','tds','status','dateOfSubmission','secondPaymentDate','secondPaymentAmount','secondPaymentTDS','secondPaymentAdjusted','financeRemarks'];
+function fillRecFormSelects(){
+  $('rf-payerName').innerHTML='<option value="">Select</option>'+DB.contracts.map(c=>`<option>${esc(c.name)}</option>`).join('');
+  $('rf-schemeName').innerHTML='<option value="">Select</option>'+DB.schemes.map(s=>`<option>${esc(s.name)}</option>`).join('');
+}
+function rfOutstanding(){$('rf-finalOutstanding').value=(+$('rf-claimAmount').value||0)-(+$('rf-amountReceived').value||0)}
+function resetRecForm(){rfFields.forEach(f=>{const el=$('rf-'+f);if(el)el.value=''});editIdx=null;$('rf-mode').textContent='New Entry'}
+function saveReceivable(){
+  const req={payerName:'Payer Name',uhid:'UHID',billNumber:'Bill Number',schemeName:'Scheme Name',billDate:'Bill Date',patientName:'Patient Name',billType:'Bill Type',status:'Status'};
+  for(const k in req){if(!$('rf-'+k).value){toast(req[k]+' is required');$('rf-'+k).focus();return}}
+  const rec=editIdx!=null?DB.receivables[editIdx]:{site:'Main Hospital',specialityName:'General Medicine',contractType:'tpa',dateOfAudit:''};
+  rfFields.forEach(f=>{const el=$('rf-'+f);if(el)rec[f]=el.type==='number'?+el.value||0:el.value});
+  rec.finalOutstanding=out(rec);
+  if(editIdx==null)DB.receivables.push(rec);
+  toast(editIdx!=null?'Receivable updated. Audit trail entry recorded.':'Receivable saved. It now appears in Billing/Audit/Payer views and all reports.');
+  resetRecForm();
+}
+function editReceivable(i){
+  editIdx=i;const r=DB.receivables[i];
+  showPage('recform');fillRecFormSelects();
+  rfFields.forEach(f=>{const el=$('rf-'+f);if(el)el.value=r[f]!=null?r[f]:''});
+  $('rf-mode').textContent='Editing '+r.billNumber;
+  toast('Editing receivable '+r.billNumber);
+}
+
+/* ================= RECEIVABLE VIEWS ================= */
+const recCols={
+  billingview:['payerName','tpa','schemeName','site','billDate','billNumber','patientName','uhid','ipNumber','dateOfAdmission','dateOfDischarge','preAuthorizationCode','preAuthorizationAmount','claimId','policyNumber','dateOfDispatch','proofOfDeliveryNumber','billType','claimAmount'],
+  auditview:['payerName','tpa','schemeName','billDate','billNumber','patientName','uhid','ipNumber','dateOfAdmission','dateOfDischarge','payerGrossAmount','preAuthorizationCode','preAuthorizationAmount','claimId','policyNumber','idCardNumber','dateOfDispatch','proofOfDeliveryNumber','billType','claimAmount','dateOfAudit'],
+  payerrec:['payerName','tpa','schemeName','site','billDate','billNumber','patientName','uhid','ipNumber','dateOfAdmission','dateOfDischarge','payerGrossAmount','preAuthorizationCode','preAuthorizationAmount','claimId','policyNumber','dateOfSubmission','billType','claimAmount','dateOfPayment','amountReceived','tds','adjustedAmount','finalOutstanding','status','financeRemarks'],
+};
+const colTitle={payerName:'Payer Name',tpa:'TPA',schemeName:'Scheme Name',site:'Site',billDate:'Bill Date',billNumber:'Bill Number',patientName:'Patient Name',uhid:'UHID',ipNumber:'IP Number',dateOfAdmission:'Date of Admission',dateOfDischarge:'Date of Discharge',payerGrossAmount:'Payer Gross Amount',preAuthorizationCode:'Pre-Authorization Code',preAuthorizationAmount:'Pre Authorization Amount',claimId:'Claim ID',policyNumber:'Policy Number',idCardNumber:'ID Card #',dateOfDispatch:'Date of Dispatch',proofOfDeliveryNumber:'Proof Of Delivery Number',dateOfSubmission:'Date of Submission',billType:'Bill Type',claimAmount:'Claim Amount',dateOfPayment:'Date of Payment',amountReceived:'Amount Received',tds:'TDS',adjustedAmount:'Adjusted Amount',finalOutstanding:'Final Outstanding',status:'Status',financeRemarks:'Finance Remarks',dateOfAudit:'Date of Audit'};
+const dateCols=new Set(['billDate','dateOfAdmission','dateOfDischarge','dateOfDispatch','dateOfSubmission','dateOfPayment','dateOfAudit']);
+const numCols=new Set(['payerGrossAmount','preAuthorizationAmount','claimAmount','amountReceived','tds','adjustedAmount','finalOutstanding']);
+function recCell(r,c){
+  if(c==='payerName')return `<td><span class="chip ${out(r)>0&&ageDays(r)>60?'bad':'info'}">${esc(r[c])}</span></td>`;
+  if(c==='uhid')return `<td><span class="chip sec">${esc(r[c])}</span></td>`;
+  if(c==='schemeName')return `<td><span class="chip info">${esc(r[c])}</span></td>`;
+  if(c==='status')return `<td>${statusChip(r[c])}</td>`;
+  if(dateCols.has(c))return `<td>${fmtD(r[c])}</td>`;
+  if(c==='finalOutstanding')return `<td class="num" style="font-weight:600;color:${out(r)>0?'var(--danger)':'var(--success)'}">${inr(out(r))}</td>`;
+  if(numCols.has(c))return `<td class="num">${inr(r[c])}</td>`;
+  return `<td>${esc(r[c])||'-'}</td>`;
+}
+function renderRecTable(view,q=''){
+  let data=DB.receivables;
+  if(view==='payerrec'){
+    const p=$('pr-payer').value,s=$('pr-status').value;
+    if(p)data=data.filter(r=>r.payerName===p);
+    if(s)data=data.filter(r=>r.status===s);
+  }
+  if(q)data=data.filter(r=>JSON.stringify(r).toLowerCase().includes(q.toLowerCase()));
+  const st=sortState[view];if(st&&st.key)data=sortBy(data,st.key,st.asc);
+  const cols=recCols[view];
+  $('tbl-'+view).innerHTML=`<tr><th>#</th><th></th>${cols.map(c=>`<th class="${numCols.has(c)?'num':''}" onclick="thSort('${view}','${c}',()=>renderRecTable('${view}'))">${colTitle[c]} ⇅</th>`).join('')}</tr>`+
+    data.map((r,i)=>`<tr><td>${i+1}</td><td><button class="btn btn-light btn-sm" onclick="editReceivable(${DB.receivables.indexOf(r)})">✎</button></td>${cols.map(c=>recCell(r,c)).join('')}</tr>`).join('')||emptyRow(cols.length+2);
+  if(view==='payerrec'){
+    const sel=$('pr-payer'),cur=sel.value;
+    sel.innerHTML='<option value="">All Payers</option>'+[...new Set(DB.receivables.map(r=>r.payerName))].map(p=>`<option ${p===cur?'selected':''}>${p}</option>`).join('');
+  }
+}
+function emptyRow(n){return `<tr><td colspan="${n}" style="text-align:center;color:var(--text-muted);padding:24px">No records to display</td></tr>`}
+
+/* ================= OUTSTANDING BILLS ================= */
+function renderOutstanding(q=''){
+  let data=DB.receivables.filter(r=>out(r)>0);
+  if(q)data=data.filter(r=>JSON.stringify(r).toLowerCase().includes(q.toLowerCase()));
+  let t1=0,t2=0,t3=0;
+  const rows=data.map((r,i)=>{const paid=(+r.amountReceived||0)+(+r.adjustedAmount||0);t1+=+r.claimAmount;t2+=paid;t3+=out(r);
+    return `<tr><td>${i+1}</td><td><span class="chip info">${esc(r.payerName)}</span></td><td>${esc(r.patientName)}</td><td>${esc(r.billNumber)}</td><td>${fmtD(r.billDate)}</td><td class="num">${inr(r.claimAmount)}</td><td class="num">${inr(paid)}</td><td class="num" style="color:var(--danger);font-weight:600">${inr(out(r))}</td></tr>`}).join('');
+  $('tbl-outstanding').innerHTML=`<tr><th>#</th><th>Payer Name</th><th>Patient Name</th><th>Bill Number</th><th>Bill Date</th><th class="num">Claim Amount</th><th class="num">Total Paid Amount</th><th class="num">Outstanding Amount</th></tr>`+rows+
+    `<tr style="font-weight:600;background:#f8f9fa"><td colspan="5">TOTAL (${data.length} bills)</td><td class="num">${inr(t1)}</td><td class="num">${inr(t2)}</td><td class="num" style="color:var(--danger)">${inr(t3)}</td></tr>`;
+}
+
+/* ================= DASHBOARD ================= */
+function dashData(){
+  const f=$('dash-from').value,t=$('dash-to').value,a=$('dash-auth').value;
+  return DB.receivables.filter(r=>(!f||r.billDate>=f)&&(!t||r.billDate<=t)&&(!a||r.site===a));
+}
+function renderDashboard(){
+  const d=dashData();
+  const raised=d.reduce((s,r)=>s+(+r.claimAmount||0),0);
+  const received=d.reduce((s,r)=>s+(+r.amountReceived||0),0);
+  const outCnt=d.filter(r=>out(r)>0).length;
+  const kpis=[['Total Amount Raised',inr(raised),'var(--primary)','₹'],['Total Amount Received',inr(received),'var(--success)','✓'],['Final Outstanding Count',outCnt+' bills','var(--danger)','!'],['Submitted',d.filter(r=>r.dateOfSubmission).length,'var(--info)','▤'],['Audited',d.filter(r=>r.dateOfAudit).length,'var(--warning)','🛡'],['Avg Settlement TAT',avgTat(d)+' days','var(--secondary)','⏱']];
+  $('dash-kpis').innerHTML=kpis.map(k=>`<div class="card kpi" style="margin:0"><div><div class="lbl">${k[0]}</div><div class="num">${k[1]}</div></div><div class="ico" style="background:${k[2]}">${k[3]}</div></div>`).join('');
+  // donut by status
+  const colors={'SETTLED':'#34c38f','SHORT':'#f1b44c','SETTLED SHORT':'#f1734f','EXCESS':'#50a5f1','ONCO NON CLAIMABLE':'#f46a6a','OUTSTANDING':'#74788d'};
+  const byStatus={};d.forEach(r=>byStatus[r.status]=(byStatus[r.status]||0)+1);
+  let acc=0,segs=[],leg=[];
+  Object.entries(byStatus).forEach(([s,n])=>{const pct=n/d.length*100;segs.push(`${colors[s]||'#ccc'} ${acc}% ${acc+pct}%`);acc+=pct;leg.push(`<span><i style="background:${colors[s]||'#ccc'}"></i>${s} (${n})</span>`)});
+  $('dash-donut').style.background=`conic-gradient(${segs.join(',')})`;
+  $('dash-donut').innerHTML=`<div style="width:90px;height:90px;border-radius:50%;background:#fff;margin:30px auto;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px">${d.length}<br></div>`;
+  $('dash-legend').innerHTML=leg.join('');
+  // top payers
+  const byPayer={};d.forEach(r=>{if(out(r)>0)byPayer[r.payerName]=(byPayer[r.payerName]||0)+out(r)});
+  const top=Object.entries(byPayer).sort((a,b)=>b[1]-a[1]);
+  const max=top.length?top[0][1]:1;
+  $('dash-toppayers').innerHTML=top.map(([p,v],i)=>`<div style="font-size:11.5px;color:var(--text-muted);margin-top:${i?10:0}px">${esc(p)}<span style="float:right;color:var(--text)">${inr(v)}</span></div><div class="bar"><i style="width:${v/max*100}%;background:${['#556ee6','#50a5f1','#34c38f','#f1b44c','#f46a6a'][i%5]}"></i></div>`).join('')||'<p style="color:var(--text-muted)">No outstanding in range.</p>';
+  // latest transactions
+  const latest=sortBy(d,'billDate',false).slice(0,6);
+  $('dash-latest').innerHTML=`<tr><th>Bill Date</th><th>Bill Number</th><th>Patient</th><th>Payer</th><th class="num">Claim Amount</th><th class="num">Received</th><th>Status</th></tr>`+
+    latest.map(r=>`<tr><td>${fmtD(r.billDate)}</td><td>${esc(r.billNumber)}</td><td>${esc(r.patientName)}</td><td>${esc(r.payerName)}</td><td class="num">${inr(r.claimAmount)}</td><td class="num">${inr(r.amountReceived)}</td><td>${statusChip(r.status)}</td></tr>`).join('');
+}
+function avgTat(d){
+  const paid=d.filter(r=>r.dateOfPayment&&r.dateOfSubmission);
+  if(!paid.length)return '—';
+  return Math.round(paid.reduce((s,r)=>s+(new Date(r.dateOfPayment)-new Date(r.dateOfSubmission))/86400000,0)/paid.length);
+}
+
+/* ================= REPORTS ================= */
+function renderPayerReport(){
+  const byPayer={};
+  DB.receivables.forEach(r=>{const p=byPayer[r.payerName]=byPayer[r.payerName]||{raised:0,received:0};p.raised+=+r.claimAmount||0;p.received+=+r.amountReceived||0});
+  const entries=Object.entries(byPayer).sort((a,b)=>b[1].raised-a[1].raised);
+  const max=entries.length?entries[0][1].raised:1;
+  $('payerreport-chart').innerHTML=entries.map(([p,v])=>`<div class="hbar-row"><div class="hbar-label">${esc(p)}</div><div class="hbar-track"><i style="width:${v.raised/max*52}%;background:#244a80" title="Raised ${inr(v.raised)}"></i><i style="width:${v.received/max*52}%;background:#36783c" title="Received ${inr(v.received)}"></i></div><div style="width:200px;font-size:10.5px;color:var(--text-muted)">${inr(v.raised)} / ${inr(v.received)}</div></div>`).join('');
+}
+function renderBalSnap(){
+  const byPayer={};
+  DB.receivables.forEach(r=>{const p=byPayer[r.payerName]=byPayer[r.payerName]||{bills:0,gross:0,claim:0,received:0,tds:0,adj:0,outst:0};p.bills++;p.gross+=+r.payerGrossAmount||0;p.claim+=+r.claimAmount||0;p.received+=+r.amountReceived||0;p.tds+=+r.tds||0;p.adj+=+r.adjustedAmount||0;p.outst+=out(r)});
+  const tot={bills:0,gross:0,claim:0,received:0,tds:0,adj:0,outst:0};
+  const rows=Object.entries(byPayer).map(([p,v])=>{Object.keys(tot).forEach(k=>tot[k]+=v[k]);
+    return `<tr><td><b>${esc(p)}</b></td><td class="num">${v.bills}</td><td class="num">${inr(v.gross)}</td><td class="num">${inr(v.claim)}</td><td class="num">${inr(v.received)}</td><td class="num">${inr(v.tds)}</td><td class="num">${inr(v.adj)}</td><td class="num" style="font-weight:600">${inr(v.outst)}</td></tr>`}).join('');
+  $('tbl-balsnap').innerHTML=`<tr><th>Payer</th><th class="num">Bills</th><th class="num">Payer Gross</th><th class="num">Claim Amount</th><th class="num">Amount Received</th><th class="num">TDS</th><th class="num">Adjusted</th><th class="num">Outstanding</th></tr>`+rows+
+    `<tr style="font-weight:600;background:#f8f9fa"><td>TOTAL</td><td class="num">${tot.bills}</td><td class="num">${inr(tot.gross)}</td><td class="num">${inr(tot.claim)}</td><td class="num">${inr(tot.received)}</td><td class="num">${inr(tot.tds)}</td><td class="num">${inr(tot.adj)}</td><td class="num">${inr(tot.outst)}</td></tr>`;
+}
+function renderDupBills(){
+  const cnt={};DB.receivables.forEach(r=>cnt[r.billNumber]=(cnt[r.billNumber]||0)+1);
+  const dups=Object.entries(cnt).filter(([,n])=>n>1);
+  $('tbl-dupbills').innerHTML=`<tr><th>Bill Number</th><th class="num">Count</th></tr>`+
+    (dups.map(([b,n])=>`<tr><td><b>${esc(b)}</b></td><td class="num"><span class="chip bad">${n}</span></td></tr>`).join('')||emptyRow(2));
+}
+const buckets=[['0-30',0,30],['31-60',31,60],['61-90',61,90],['91-180',91,180],['180+',181,99999]];
+function ageingMatrix(){
+  const m={};
+  DB.receivables.forEach(r=>{const o=out(r);if(o<=0)return;const d=ageDays(r);const row=m[r.payerName]=m[r.payerName]||{};
+    buckets.forEach(([k,lo,hi])=>{if(d>=lo&&d<=hi)row[k]=(row[k]||0)+o})});
+  return m;
+}
+function renderAgeing(){
+  const m=ageingMatrix();const totals={};let grand=0;
+  const rows=Object.entries(m).map(([p,row])=>{let t=0;
+    const cells=buckets.map(([k])=>{const v=row[k]||0;t+=v;totals[k]=(totals[k]||0)+v;return `<td class="num">${v?inr(v):'-'}</td>`}).join('');
+    grand+=t;return `<tr><td><b>${esc(p)}</b></td>${cells}<td class="num" style="font-weight:600">${inr(t)}</td></tr>`}).join('');
+  $('tbl-ageing').innerHTML=`<tr><th>Payer</th>${buckets.map(([k])=>`<th class="num">${k} days</th>`).join('')}<th class="num">Total</th></tr>`+rows+
+    `<tr style="font-weight:600;background:#f8f9fa"><td>GRAND TOTAL</td>${buckets.map(([k])=>`<td class="num">${inr(totals[k]||0)}</td>`).join('')}<td class="num">${inr(grand)}</td></tr>`;
+}
+function exportAgeingCSV(){
+  const m=ageingMatrix();
+  const arr=Object.entries(m).map(([p,row])=>{const o={Payer:p};buckets.forEach(([k])=>o[k+' days']=row[k]||0);return o});
+  exportCSV(arr,'ageing_report.csv');
+}
+function periodKey(d,p){
+  const x=new Date(d);
+  if(p==='D')return d;
+  if(p==='M')return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');
+  if(p==='Q')return x.getFullYear()+' Q'+(Math.floor(x.getMonth()/3)+1);
+  return String(x.getFullYear());
+}
+function renderDwmqy(){
+  const p=$('dwmqy-period').value;
+  const m={};
+  DB.receivables.forEach(r=>{const k=periodKey(r.billDate,p);const o=m[k]=m[k]||{bills:0,raised:0,received:0,outst:0};o.bills++;o.raised+=+r.claimAmount||0;o.received+=+r.amountReceived||0;o.outst+=out(r)});
+  $('tbl-dwmqy').innerHTML=`<tr><th>Period</th><th class="num">Bills</th><th class="num">Amount Raised</th><th class="num">Amount Received</th><th class="num">Outstanding</th></tr>`+
+    Object.entries(m).sort().map(([k,v])=>`<tr><td><b>${k}</b></td><td class="num">${v.bills}</td><td class="num">${inr(v.raised)}</td><td class="num">${inr(v.received)}</td><td class="num">${inr(v.outst)}</td></tr>`).join('');
+}
+function renderDebtAge(){
+  const bt=$('da-billtype').value;
+  const data=DB.receivables.filter(r=>(!bt||r.billType===bt)&&out(r)>0);
+  const m={};data.forEach(r=>{const o=m[r.payerName]=m[r.payerName]||{amt:0,bills:0};o.amt+=out(r);o.bills++});
+  let ta=0,tb=0;
+  $('tbl-debtage').innerHTML=`<tr><th>Payer</th><th class="num">Outstanding Amount</th><th class="num">Bills</th></tr>`+
+    Object.entries(m).sort((a,b)=>b[1].amt-a[1].amt).map(([p,v])=>{ta+=v.amt;tb+=v.bills;return `<tr><td><b>${esc(p)}</b></td><td class="num">${inr(v.amt)}</td><td class="num">${v.bills}</td></tr>`}).join('')+
+    `<tr style="font-weight:600;background:#f8f9fa"><td>TOTAL</td><td class="num">${inr(ta)}</td><td class="num">${tb}</td></tr>`;
+}
+function renderTatDash(){
+  const groups=[['0-30 days',0,30],['31-60 days',31,60],['61-90 days',61,90],['90+ days',91,99999]];
+  const m={};
+  DB.receivables.filter(r=>out(r)>0).forEach(r=>{const d=ageDays(r);
+    const g=groups.find(([,lo,hi])=>d>=lo&&d<=hi);const k=g?g[0]:'Not Defined';
+    const o=m[k]=m[k]||{amt:0,bills:0};o.amt+=out(r);o.bills++});
+  let ta=0,tb=0;
+  $('tbl-tatdash').innerHTML=`<tr><th>Group</th><th class="num">Amount</th><th class="num">Bills</th></tr>`+
+    groups.map(([k])=>{const v=m[k]||{amt:0,bills:0};ta+=v.amt;tb+=v.bills;return `<tr><td><b>${k}</b></td><td class="num">${inr(v.amt)}</td><td class="num">${v.bills}</td></tr>`}).join('')+
+    `<tr style="font-weight:600;background:#f8f9fa"><td>TOTAL</td><td class="num">${inr(ta)}</td><td class="num">${tb}</td></tr>`;
+}
+function renderDebtSum(){
+  const m={};
+  DB.receivables.forEach(r=>{const k=r.specialityName+'||'+r.contractType;const o=m[k]=m[k]||{cnt:0,preauth:0,gross:0,claim:0,received:0,tds:0,outst:0};
+    if(out(r)>0)o.cnt++;o.preauth+=+r.preAuthorizationAmount||0;o.gross+=+r.payerGrossAmount||0;o.claim+=+r.claimAmount||0;o.received+=+r.amountReceived||0;o.tds+=+r.tds||0;o.outst+=out(r)});
+  $('tbl-debtsum').innerHTML=`<tr><th>Speciality Name</th><th>Contract Type</th><th class="num">Final Outstanding Count</th><th class="num">Pre-Auth Amount</th><th class="num">Payer Gross</th><th class="num">Claim Amount</th><th class="num">Amount Received</th><th class="num">TDS</th><th class="num">Outstanding</th></tr>`+
+    Object.entries(m).map(([k,v])=>{const [sp,ct]=k.split('||');return `<tr><td><b>${esc(sp)}</b></td><td><span class="chip sec">${esc(ct.toUpperCase())}</span></td><td class="num">${v.cnt}</td><td class="num">${inr(v.preauth)}</td><td class="num">${inr(v.gross)}</td><td class="num">${inr(v.claim)}</td><td class="num">${inr(v.received)}</td><td class="num">${inr(v.tds)}</td><td class="num" style="font-weight:600">${inr(v.outst)}</td></tr>`}).join('');
+}
+
+/* ================= ENHANCEMENT: INSURANCE MASTER ================= */
+function renderMaster(q=''){
+  let data=DB.insurers;
+  if(q)data=data.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase()));
+  const expiring=DB.insurers.filter(i=>i.status==='Expiring');
+  $('master-expiry-alert').style.display=expiring.length?'flex':'none';
+  if(expiring.length)$('master-expiry-alert').innerHTML=`<b>⚠</b><div><b>Contract expiry:</b> ${expiring.map(i=>i.name+' ('+fmtD(i.contractEnd)+')').join(', ')} — renew to avoid billing overrides.</div>`;
+  $('tbl-master').innerHTML=`<tr><th>Insurer</th><th>Code</th><th>Type</th><th>Pricing Group</th><th>TPA</th><th>Contract Ends</th><th>Pre-Auth</th><th>Status</th><th>Actions</th></tr>`+
+    data.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.code)}</td><td><span class="chip ${r.type==='Cashless'?'info':'muted'}">${esc(r.type)}</span></td><td>${esc(r.pricingGroup)}</td><td>${esc(r.tpaName)||'—'}</td>
+    <td style="${r.status!=='Active'?'color:var(--danger);font-weight:600':''}">${fmtD(r.contractEnd)}</td><td>${esc(r.preAuth)}</td><td>${statusChip(r.status)}</td>
+    <td><button class="btn btn-light btn-sm" onclick="openInsurerModal(${DB.insurers.indexOf(r)})">✎ Edit</button> <button class="btn btn-${r.status==='Inactive'?'success':'danger'} btn-sm" onclick="toggleInsurer(${DB.insurers.indexOf(r)})">${r.status==='Inactive'?'Activate':'Deactivate'}</button></td></tr>`).join('')||emptyRow(9);
+}
+function toggleInsurer(i){
+  const r=DB.insurers[i];
+  r.status=r.status==='Inactive'?'Active':'Inactive';
+  renderMaster();
+  toast(r.name+(r.status==='Inactive'?' deactivated — history preserved; no new mappings or billing allowed.':' reactivated.'));
+}
+function openInsurerModal(idx){
+  const r=idx!=null?DB.insurers[idx]:{};
+  genericModal(idx!=null?'Edit Insurance Provider':'Add Insurance Provider',
+    `<div class="form-grid c2">
+      ${fld('i-name','Insurance Name','text',1)}
+      ${fld('i-code','Short Code / Alias','text',1,'oninput="dupCheck(this)"')}
+      ${fld('i-type','Insurance Type','select',1,'<option>Cashless</option><option>Reimbursement</option><option>Corporate</option><option>Government Scheme</option>')}
+      ${fld('i-pg','Pricing Group','select',1,DB.groups.map(g=>`<option>${esc(g.code)}</option>`).join(''))}
+      ${fld('i-tpa','TPA','select',0,'<option value="">— None —</option><option>MediAssist</option><option>Vidal Health</option><option>Paramount</option>')}
+      ${fld('i-end','Contract End Date','date',1)}
+    </div>
+    <div class="err-text" id="dup-err" style="display:none;color:var(--danger);font-size:10.5px;margin-top:4px">This short code already exists — duplicate prevented.</div>
+    <label style="margin-top:12px"><input type="checkbox" id="i-pa" checked> Pre-authorization required for billing</label>
+    <label><input type="checkbox"> Enforce ICD/CPT code mapping on claims</label>`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Save Provider',cls:'btn-primary',fn:()=>{
+       const name=$('i-name').value.trim(),code=$('i-code').value.trim().toUpperCase();
+       if(!name||!code){toast('Name and Short Code are required');return}
+       if(DB.insurers.some((x,i2)=>x.code===code&&i2!==idx)){toast('Duplicate short code — choose another.');return}
+       const rec={name,code,type:$('i-type').value,pricingGroup:$('i-pg').value,tpaName:$('i-tpa').value,contractEnd:$('i-end').value,preAuth:$('i-pa').checked?'Required':'Not required',status:new Date($('i-end').value)<today?'Expired':new Date($('i-end').value)<new Date(today.getTime()+30*86400000)?'Expiring':'Active'};
+       idx!=null?DB.insurers[idx]=rec:DB.insurers.push(rec);
+       closeModal('modal-generic');renderMaster();toast('Insurer saved. Before/after change log recorded.');}}]);
+  setTimeout(()=>{if(idx!=null){$('i-name').value=r.name;$('i-code').value=r.code;$('i-type').value=r.type;$('i-pg').value=r.pricingGroup;$('i-tpa').value=r.tpaName;$('i-end').value=r.contractEnd;$('i-pa').checked=r.preAuth==='Required'}},0);
+}
+function dupCheck(el){
+  const dup=DB.insurers.some(x=>x.code===el.value.trim().toUpperCase());
+  $('dup-err').style.display=dup?'block':'none';
+  el.style.borderColor=dup?'var(--danger)':'#ced4da';
+}
+document.getElementById('btn-add-insurer').onclick=()=>openInsurerModal();
+
+/* ================= ENHANCEMENT: PATIENT POLICIES ================= */
+function renderPolicies(){
+  $('policy-list').innerHTML=DB.policies.map((p,i)=>`<div class="pol-card">
+    <div><span class="chip ${p.priority==='PRIMARY'?'info':'muted'}">${p.priority}</span> <b style="margin-left:6px">${esc(p.insurer)}</b><br>
+    <small style="color:var(--text-muted)">Policy: ${esc(p.policyNo)} · Member ID: ${esc(p.memberId)} · Holder: ${esc(p.holder)}${p.holderName?' ('+esc(p.holderName)+')':''} · Valid till ${fmtD(p.validTill)}</small><br>
+    <small style="color:var(--text-muted)">Sum insured ${inr(p.sumInsured)} · Used ${inr(p.used)} · <b style="color:var(--success)">Available ${inr(p.sumInsured-p.used)}</b>${p.copay?' · Co-pay '+p.copay+'%':''}</small></div>
+    <div style="text-align:right"><span class="chip ${p.verify.includes('API')?'ok':'warn'}">${esc(p.verify)}</span><br><small style="color:var(--text-muted)">${p.docs} document(s)</small><br>
+    <button class="btn btn-light btn-sm" style="margin-top:4px" onclick="if(confirm('Remove this policy?')){DB.policies.splice(${i},1);renderPolicies();toast('Policy removed. Audit entry created.')}">🗑 Remove</button></div>
+  </div>`).join('')||'<p style="color:var(--text-muted)">No policies linked. Click “+ Add Insurance Policy”.</p>';
+}
+document.getElementById('btn-add-policy').onclick=()=>{
+  if(DB.policies.length>=5){toast('Maximum 5 concurrent policies per patient.');return}
+  genericModal('Add Insurance Policy',
+    `<div class="form-grid c2">
+      ${fld('p-ins','Insurance Provider','select',1,DB.insurers.filter(i=>i.status!=='Expired'&&i.status!=='Inactive').map(i=>`<option>${esc(i.name)}</option>`).join(''))}
+      ${fld('p-no','Policy Number','text',1)}
+      ${fld('p-mid','Card / Member ID','text')}
+      ${fld('p-pri','Priority','select',1,'<option>PRIMARY</option><option>SECONDARY</option><option>TERTIARY</option>')}
+      ${fld('p-holder','Holder Type','select',1,'<option>Self</option><option>Spouse</option><option>Child</option><option>Parent</option><option>Other Dependent</option>')}
+      ${fld('p-hname','Policy Holder Name','text')}
+      ${fld('p-till','Valid Till','date',1)}
+      ${fld('p-sum','Sum Insured','number')}
+      ${fld('p-copay','Co-pay %','number')}
+    </div>
+    <label style="margin-top:10px">Attach documents (PDF/image, max 5 MB)</label>
+    <div class="upload-zone" style="padding:16px" onclick="this.innerHTML='✓ insurance_card.pdf attached';toast('Document attached (simulated).')">⇪ Click to attach</div>`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Save Policy',cls:'btn-primary',fn:()=>{
+       if(!$('p-no').value.trim()||!$('p-till').value){toast('Policy Number and Valid Till are required');return}
+       DB.policies.push({priority:$('p-pri').value,insurer:$('p-ins').value,policyNo:$('p-no').value.trim(),memberId:$('p-mid').value,holder:$('p-holder').value,holderName:$('p-hname').value,validTill:$('p-till').value,sumInsured:+$('p-sum').value||0,used:0,copay:+$('p-copay').value||0,verify:'Manual verification',docs:1});
+       closeModal('modal-generic');renderPolicies();toast('Policy linked with priority ranking. Eligibility checklist queued.');}}]);
+};
+
+/* ================= ENHANCEMENT: BILLING WIZARD ================= */
+function renderBillPolicyOptions(){
+  $('bill-policy-options').innerHTML=DB.policies.map((p,i)=>`<div class="pol-card" style="${i===0?'border-color:var(--primary);background:#f6f8ff':''}">
+    <div><input type="radio" name="ins" ${i===0?'checked':''}> <span class="chip ${p.priority==='PRIMARY'?'info':'muted'}">${p.priority}</span> <b>${esc(p.insurer)}</b><br>
+    <small style="color:var(--text-muted);margin-left:22px">Available cover ${inr(p.sumInsured-p.used)} · Co-pay ${p.copay}%</small></div>
+    ${i===0?'<span class="chip ok">Recommended</span>':''}</div>`).join('');
+}
+function billGo(n){
+  [1,2,3,4,5,6].forEach(i=>$('bill-step-'+i).style.display=i===n?'block':'none');
+  document.querySelectorAll('#bill-stepper .step').forEach((s,i)=>{s.classList.remove('done','current');if(i+1<n)s.classList.add('done');if(i+1===n)s.classList.add('current')});
+  if(n===2)renderBillPolicyOptions();
+  window.scrollTo(0,0);
+}
+function verifyPreauth(){
+  const v=$('preauth-no').value.trim();
+  if(!v){toast('Enter a pre-auth number first.');return}
+  $('preauth-ok').style.display='flex';
+  $('btn-pa-next').disabled=false;
+  toast('Pre-auth verified with TPA (simulated API call, <3s).');
+}
+function computeSplit(){
+  let ins=0,pat=0,rowsI='',rowsP='';
+  document.querySelectorAll('.svc:checked').forEach(s=>{
+    const amt=+s.dataset.amt,cov=s.dataset.cov==='1';
+    const name=s.closest('tr').children[1].textContent;
+    if(cov){ins+=amt;rowsI+=`<div class="split-row"><span>${name}</span><span>${inr(amt)}</span></div>`}
+    else{pat+=amt;rowsP+=`<div class="split-row"><span>${name}</span><span>${inr(amt)}</span></div>`}
+  });
+  if(!rowsP)rowsP='<div class="split-row"><span>No patient-payable items</span><span>₹0</span></div>';
+  rowsI+=`<div class="split-row total"><span>Insurer total</span><span style="color:var(--primary)">${inr(ins)}</span></div>`;
+  rowsP+=`<div class="split-row total"><span>Patient total</span><span style="color:var(--danger)">${inr(pat)}</span></div>`;
+  $('split-ins').innerHTML=rowsI;$('split-pat').innerHTML=rowsP;
+  window._splitTotal=ins;
+}
+function finishBilling(){
+  const billNo='INV-'+(10231+Math.floor(Math.random()*99));
+  DB.receivables.push({payerName:'Star Health Insurance',tpa:'MediAssist',schemeName:'Corporate Wellness TCS',site:'Main Hospital',billDate:today.toISOString().slice(0,10),billNumber:billNo,patientName:'Ravi Kumar',uhid:'TLO-2024-08812',ipNumber:'',dateOfAdmission:'',dateOfDischarge:'',payerGrossAmount:window._splitTotal||0,preAuthorizationCode:$('preauth-no').value.trim()||'PA-2026-4471',preAuthorizationAmount:80000,claimId:'CLM-'+(88200+Math.floor(Math.random()*99)),policyNumber:'SH-99812-FHO',idCardNumber:'M-4471',dateOfDispatch:'',proofOfDeliveryNumber:'',dateOfSubmission:today.toISOString().slice(0,10),billType:'OP',claimAmount:window._splitTotal||0,dateOfPayment:'',modeOfPayment:'',paymentReference:'',amountReceived:0,tds:0,adjustedAmount:0,finalOutstanding:window._splitTotal||0,adjustmentRemarks:'',status:'OUTSTANDING',financeRemarks:'Auto-created from billing wizard',dateOfAudit:'',specialityName:'General Medicine',contractType:'tpa'});
+  $('bill-done-msg').innerHTML=`Insurance bill <b>${billNo}</b> locked. Claim summary auto-created and a receivable record opened for Star Health — <b>no manual Receivable Form entry needed</b>. It is now visible in Payer Receivables, Outstanding Bills, Dashboard, and every report.`;
+  billGo(6);
+  toast('Receivable '+billNo+' auto-created in the existing IRMS pipeline.');
+}
+
+/* ================= ENHANCEMENT: PRE-AUTH ================= */
+function renderPreauth(q=''){
+  let data=DB.preauths;
+  if(q)data=data.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase()));
+  $('tbl-preauth').innerHTML=`<tr><th>Pre-Auth No</th><th>Patient</th><th>Insurer / TPA</th><th>Requested</th><th class="num">Approved Amt</th><th>Valid Till</th><th>Status</th><th>Actions</th></tr>`+
+    data.map((r,i)=>`<tr><td><b>${esc(r.no)}</b></td><td>${esc(r.patient)}</td><td>${esc(r.insurer)}</td><td>${fmtD(r.requested)}</td><td class="num">${r.approved?inr(r.approved):'—'}</td>
+    <td style="${r.status==='Expiring'?'color:var(--danger);font-weight:600':''}">${fmtD(r.validTill)}</td><td>${statusChip(r.status)}</td>
+    <td>${r.status==='Approved'?`<button class="btn btn-light btn-sm" onclick="enhancePreauth(${DB.preauths.indexOf(r)})">Request Enhancement</button>`:''}
+        ${r.status.startsWith('Rejected')?`<button class="btn btn-light btn-sm" onclick="respondQuery(${DB.preauths.indexOf(r)})">Respond</button>`:''}
+        ${r.status==='Awaiting TPA'?`<button class="btn btn-success btn-sm" onclick="approvePreauth(${DB.preauths.indexOf(r)})">Mark Approved</button>`:''}</td></tr>`).join('')||emptyRow(8);
+}
+function openPreauthModal(){
+  genericModal('New Pre-Auth Request',
+    `<div class="form-grid c2">
+      ${fld('pa-pat','Patient','text',1,'placeholder="Name / UHID"')}
+      ${fld('pa-ins','Insurer / TPA','select',1,DB.insurers.filter(i=>i.preAuth==='Required'&&i.status!=='Expired').map(i=>`<option>${esc(i.name)}${i.tpaName?' / '+esc(i.tpaName):''}</option>`).join(''))}
+      ${fld('pa-amt','Estimated Amount','number',1)}
+      ${fld('pa-svc','Service Category','select',1,'<option>Consultation + Diagnostics</option><option>Surgery</option><option>ICU</option><option>Maternity</option>')}
+    </div>
+    <label style="margin-top:10px">Attach pre-auth form / clinical notes</label>
+    <div class="upload-zone" style="padding:16px" onclick="this.innerHTML='✓ preauth_form.pdf attached';toast('Document attached (simulated).')">⇪ Click to attach</div>`,
+    [{label:'Cancel',cls:'btn-light',fn:()=>closeModal('modal-generic')},
+     {label:'Submit to TPA',cls:'btn-primary',fn:()=>{
+       if(!$('pa-pat').value.trim()||!$('pa-amt').value){toast('Patient and Estimated Amount are required');return}
+       DB.preauths.unshift({no:'PA-2026-'+(4500+Math.floor(Math.random()*400)),patient:$('pa-pat').value.trim(),insurer:$('pa-ins').value,requested:today.toISOString().slice(0,10),approved:0,validTill:'',status:'Awaiting TPA'});
+       closeModal('modal-generic');renderPreauth();toast('Pre-auth request submitted. TAT clock started per payer contract.');}}]);
+}
+function approvePreauth(i){const r=DB.preauths[i];r.status='Approved';r.approved=+prompt('Approved amount (₹):','50000')||50000;r.validTill='2026-06-15';renderPreauth();toast(r.no+' marked approved for '+inr(r.approved)+'.')}
+function enhancePreauth(i){const r=DB.preauths[i];toast('Enhancement request sent to TPA for '+r.no+'. TAT: 2 days per Star Health contract.')}
+function respondQuery(i){const r=DB.preauths[i];r.status='Awaiting TPA';renderPreauth();toast('Query response submitted for '+r.no+' — status moved back to Awaiting TPA.')}
+
+/* ================= ENHANCEMENT: BULK PRICING ================= */
+function simulateUpload(){$('upzone').style.display='none';$('upresult').style.display='block'}
+function downloadTemplate(){
+  const csv='Service Code,Service Name,Pricing Group,Unit Price,Effective Date,End Date\nCON-GM-01,General Medicine Consultation,STAR-2026-A,800,2026-07-01,2027-03-31';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='pricing_upload_template.csv';a.click();
+  toast('Template downloaded with mandatory columns.');
+}
+function downloadErrors(){
+  const csv='Row,Service Code,Error\n114,LAB-XR-2210,Service code not in service master\n402,OT-554,Service code not in service master';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='pricing_upload_errors.csv';a.click();
+  toast('Error report downloaded.');
+}
+
+/* ================= GUIDED TOUR ================= */
+const tourSteps=[
+ {title:'Welcome to the IRMS Prototype 👋',
+  body:`<p>This is a <b>fully functional prototype</b> of TeleOPD's Insurance module — the <b>existing IRMS exactly as it is today</b>, plus the <b>proposed FRD v2.0 enhancements</b>. Everything runs on live in-memory data: add, edit, search, filter, sort and export — changes flow into every report instantly.</p>
+  <p><b>How to explore:</b></p><ol>
+  <li>Top sidebar section = <b>existing IRMS</b> (all 18 screens, same labels and columns as production).</li>
+  <li>Bottom section = <b>proposed enhancements</b> (marked NEW).</li>
+  <li>Add or edit anything — dashboards and reports recalculate live.</li>
+  <li>Use the <b>?</b> button (top right) to replay this tour anytime.</li></ol>`},
+ {el:'nav-dashboard',page:'dashboard',title:'1 · Dashboard (existing)',
+  body:`<p>The existing IRMS dashboard: Amount Raised/Received KPIs, claim-status donut, top outstanding payers and latest transactions. <b>Try changing the date range</b> — every figure recalculates from live data.</p>`},
+ {el:'nav-schemes',page:'schemes',title:'2 · Masters: Schemes, Excluded Payors, Contract Groups',
+  body:`<p>Master-data screens with the exact production columns. <b>Add Scheme</b>, edit and delete all work. The same applies to Excluded Payors and Contract Groups below.</p>`},
+ {el:'nav-contracts',page:'contracts',title:'3 · Contract Management (existing)',
+  body:`<p>Payer contracts with the full production column set — pricing group, mode, frequency, TAT timelines, NMI query days, follow-up. <b>Add Contract</b> opens the real form (all fields, required validation). Trust-type contracts get a <b>₹ Deposit</b> action. Contracts expiring within 30 days show end dates in red.</p>`},
+ {el:'nav-recform',page:'recform',title:'4 · Receivable Form (existing)',
+  body:`<p>The manual claim-entry form with every production section: Patient Information, Financials, Second Payments and Remarks. Required fields are enforced, and <b>Final Outstanding auto-calculates</b>. Saved entries appear in all views and reports instantly.</p>`},
+ {el:'nav-billingview',page:'billingview',title:'5 · Billing / Audit / Payer Receivables views',
+  body:`<p>Three views over the same receivables data, with production column visibility: Billing View hides payment fields, Audit View shows audit columns, Payer Receivables shows the full financial trail with payer/status filters. <b>Click any column header to sort, ✎ to edit a row, search to filter.</b></p>`},
+ {el:'nav-outstanding',page:'outstanding',title:'6 · Outstanding Bills & Reports',
+  body:`<p>Outstanding = Claim − Paid, computed live, with totals. Below it: <b>Payer Report</b> (raised vs received chart), <b>Balance Snapshot</b> pivot, <b>Duplicate Bills</b> (try it — INV-10199 exists twice), <b>Ageing</b> buckets with CSV export, <b>DWMQY</b> (switch period), and the <b>Debtors / TAT dashboards</b>.</p>`},
+ {el:'nav-master',page:'master',title:'7 · NEW — Insurance Master',
+  body:`<p>First enhancement: a proper insurer registry with type, TPA, pricing group, pre-auth flag and contract expiry alerts. <b>Add a provider</b> — duplicate short codes are blocked in real time; deactivation preserves history.</p>`},
+ {el:'nav-patient',page:'patient',title:'8 · NEW — Patient Insurance',
+  body:`<p>Replaces today's 3-field capture: up to 5 policies with <b>priority ranking</b>, holder type, validity, sum-insured tracking and document attachments. Add and remove policies — the billing wizard reads this list.</p>`},
+ {el:'nav-billing',page:'billing',title:'9 · NEW — Insurance Billing (6 guided steps)',
+  body:`<p>The core NABH usability fix: auto-detection at check-in → policy selection → <b>pre-auth verification</b> → contracted rates → <b>auto split bill</b> → done. Finishing the flow <b>auto-creates a receivable</b> in the existing IRMS pipeline — check Payer Receivables afterwards.</p>`},
+ {el:'nav-preauth',page:'preauth',title:'10 · NEW — Pre-Auth Tracker & Bulk Pricing',
+  body:`<p>Track pre-auths end-to-end: submit new requests, mark approvals, respond to NMI queries, request enhancements. Below it, <b>Bulk Pricing Upload</b> simulates file validation with downloadable template and error report.</p>
+  <p style="margin-top:8px"><b>That's everything — explore freely!</b> All details behind these screens are in the FRD v2.0 document.</p>`}
+];
+let tourIdx=0;
+function tourShow(i){
+  tourIdx=i;
+  document.querySelectorAll('.spotlight').forEach(e=>e.classList.remove('spotlight'));
+  const s=tourSteps[i];
+  if(s.page)showPage(s.page);
+  if(s.el)$(s.el).classList.add('spotlight');
+  $('tour-bg').classList.add('open');
+  const card=$('tour-card');card.style.display='block';
+  $('tour-num').textContent='Guided tour · step '+(i+1)+' of '+tourSteps.length;
+  $('tour-title').textContent=s.title;
+  $('tour-body').innerHTML=s.body;
+  $('tour-dots').innerHTML=tourSteps.map((_,j)=>`<i class="${j<=i?'on':''}"></i>`).join('');
+  $('tour-next').textContent=i===tourSteps.length-1?'Finish ✓':'Next →';
+  if(s.el){card.classList.remove('center');card.style.left='270px';card.style.top=Math.max(80,Math.min(window.innerHeight-380,$(s.el).getBoundingClientRect().top-20))+'px';card.style.transform='none'}
+  else{card.classList.add('center');card.style.left='';card.style.top='';card.style.transform=''}
+}
+function tourEnd(){
+  document.querySelectorAll('.spotlight').forEach(e=>e.classList.remove('spotlight'));
+  $('tour-bg').classList.remove('open');$('tour-card').style.display='none';
+  showPage('dashboard');
+}
+$('tour-next').onclick=()=>tourIdx<tourSteps.length-1?tourShow(tourIdx+1):tourEnd();
+$('tour-skip').onclick=tourEnd;
+$('btn-tour').onclick=()=>tourShow(0);
+
+/* ================= INIT ================= */
+renderDashboard();fillRecFormSelects();
+window.addEventListener('load',()=>setTimeout(()=>tourShow(0),400));
+</script>
+</body>
 </html>
